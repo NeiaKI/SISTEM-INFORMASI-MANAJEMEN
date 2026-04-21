@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIM Tugas & Proyek – Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #151820;
+    --card:     #1c2030;
+    --border:   #252a3a;
+    --amber:    #f5a623;
+    --amber2:   #ffc55a;
+    --teal:     #38bdf8;
+    --rose:     #fb7185;
+    --green:    #4ade80;
+    --purple:   #a78bfa;
+    --text:     #e8ecf4;
+    --muted:    #7a8299;
+    --danger:   #f43f5e;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+  }
+
+  /* ── SIDEBAR ─────────────────────────── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 20;
+  }
+
+  .logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--amber);
+    line-height: 1;
+  }
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  nav { padding: 20px 12px; flex: 1; }
+  .nav-section { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; padding: 0 12px; margin: 16px 0 6px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px;
+    font-size: 13.5px; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all .2s; margin-bottom: 2px;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--card); color: var(--text); }
+  .nav-item.active { background: rgba(245,166,35,.12); color: var(--amber); }
+  .nav-item.active::before {
+    content: '';
+    position: absolute; left: 0; top: 20%; height: 60%; width: 3px;
+    background: var(--amber); border-radius: 0 3px 3px 0;
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+  .badge.amber { background: rgba(245,166,35,.2); color: var(--amber); }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .user-info { min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-nim { font-size: 11px; color: var(--muted); }
+
+  /* ── MAIN ────────────────────────────── */
+  .main {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ──────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13,15,20,.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .topbar-title { font-family: 'DM Serif Display', serif; font-size: 20px; flex: 1; }
+  .topbar-title span { color: var(--amber); }
+
+  .search-wrap {
+    position: relative;
+  }
+  .search-input {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    padding: 7px 14px 7px 34px; border-radius: 8px; font-size: 13px;
+    outline: none; width: 200px; transition: border .2s;
+  }
+  .search-input:focus { border-color: var(--amber); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+    transition: all .2s; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--amber); color: #0d0f14; }
+  .btn-primary:hover { background: var(--amber2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,166,35,.35); }
+  .btn-ghost { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+  /* ── PAGE CONTENT ────────────────────── */
+  .page { padding: 28px 32px; display: none; flex-direction: column; gap: 24px; animation: fadeUp .35s ease; }
+  .page.active { display: flex; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .section-label {
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 2px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 16px;
+  }
+
+  /* ── STAT CARDS ──────────────────────── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; position: relative; overflow: hidden; transition: transform .2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-card::after {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--accent-color); opacity: .08;
+  }
+  .stat-card[data-accent="amber"] { --accent-color: var(--amber); }
+  .stat-card[data-accent="teal"]  { --accent-color: var(--teal); }
+  .stat-card[data-accent="rose"]  { --accent-color: var(--rose); }
+  .stat-card[data-accent="green"] { --accent-color: var(--green); }
+
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 14px;
+  }
+  .stat-icon.amber { background: rgba(245,166,35,.15); color: var(--amber); }
+  .stat-icon.teal  { background: rgba(56,189,248,.15); color: var(--teal); }
+  .stat-icon.rose  { background: rgba(251,113,133,.15); color: var(--rose); }
+  .stat-icon.green { background: rgba(74,222,128,.15);  color: var(--green); }
+
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-change { font-size: 11px; margin-top: 10px; display: flex; align-items: center; gap: 4px; }
+  .stat-change.up   { color: var(--green); }
+  .stat-change.down { color: var(--rose); }
+
+  /* ── TWO-COL ──────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+
+  /* ── CARD ────────────────────────────── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px;
+  }
+  .card-header { display: flex; align-items: center; margin-bottom: 18px; }
+  .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+  .card-header a { font-size: 12px; color: var(--amber); text-decoration: none; }
+  .card-header a:hover { text-decoration: underline; }
+
+  /* ── TASK LIST ───────────────────────── */
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+    transition: background .15s; border-radius: 6px; cursor: pointer;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: rgba(255,255,255,.025); padding-left: 6px; }
+
+  .task-check {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s;
+  }
+  .task-check:hover { border-color: var(--green); }
+  .task-check.done { background: var(--green); border-color: var(--green); }
+  .task-check.done::after { content: '✓'; color: #0d0f14; font-size: 10px; font-weight: 700; }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .task-meta { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+  .dot { width: 4px; height: 4px; background: var(--muted); border-radius: 50%; }
+
+  .priority-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 6px; flex-shrink: 0;
+  }
+  .priority-badge.high   { background: rgba(244,63,94,.15);  color: var(--rose); }
+  .priority-badge.medium { background: rgba(245,166,35,.15); color: var(--amber); }
+  .priority-badge.low    { background: rgba(74,222,128,.15); color: var(--green); }
+
+  /* ── STATUS TAG ──────────────────────── */
+  .status-tag {
+    font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+  }
+  .status-tag.belum    { background: rgba(122,130,153,.15); color: var(--muted); }
+  .status-tag.proses   { background: rgba(56,189,248,.15);  color: var(--teal); }
+  .status-tag.review   { background: rgba(167,139,250,.15); color: var(--purple); }
+  .status-tag.selesai  { background: rgba(74,222,128,.15);  color: var(--green); }
+  .status-tag.mendesak { background: rgba(244,63,94,.15);   color: var(--rose); }
+
+  /* ── DEADLINE COUNTDOWN ──────────────── */
+  .deadline-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; padding: 2px 8px; border-radius: 6px; flex-shrink: 0;
+  }
+  .deadline-chip.urgent  { background: rgba(244,63,94,.15);  color: var(--rose); }
+  .deadline-chip.soon    { background: rgba(245,166,35,.15); color: var(--amber); }
+  .deadline-chip.normal  { background: rgba(56,189,248,.12); color: var(--teal); }
+
+  /* ── PROGRESS BARS ───────────────────── */
+  .project-item { margin-bottom: 18px; }
+  .project-item:last-child { margin-bottom: 0; }
+  .project-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .project-name { font-size: 13px; font-weight: 500; }
+  .project-mk { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .project-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--amber); }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width .8s cubic-bezier(.23,1,.32,1); }
+  .progress-fill.p-amber  { background: linear-gradient(90deg, var(--amber), var(--amber2)); }
+  .progress-fill.p-teal   { background: linear-gradient(90deg, var(--teal), #67e8f9); }
+  .progress-fill.p-purple { background: linear-gradient(90deg, var(--purple), #c4b5fd); }
+  .progress-fill.p-green  { background: linear-gradient(90deg, var(--green), #86efac); }
+
+  .phase-pills { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+  .phase-pill {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+    background: var(--border); color: var(--muted);
+  }
+  .phase-pill.done { background: rgba(74,222,128,.15); color: var(--green); }
+  .phase-pill.active { background: rgba(56,189,248,.15); color: var(--teal); }
+
+  /* ── MINI CALENDAR ───────────────────── */
+  .mini-cal-header { display: flex; align-items: center; margin-bottom: 12px; }
+  .mini-cal-header h4 { font-size: 13px; font-weight: 600; flex: 1; }
+  .cal-nav { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; transition: color .15s; }
+  .cal-nav:hover { color: var(--text); }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; }
+  .cal-dow { font-size: 10px; color: var(--muted); padding: 4px 0; font-weight: 600; }
+  .cal-day {
+    font-size: 12px; padding: 5px 2px; border-radius: 6px; cursor: pointer;
+    transition: background .15s; color: var(--muted); line-height: 1.2;
+  }
+  .cal-day:hover { background: var(--border); color: var(--text); }
+  .cal-day.today { background: var(--amber); color: #0d0f14; font-weight: 700; }
+  .cal-day.has-task { color: var(--text); position: relative; }
+  .cal-day.has-task::after { content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--rose); border-radius: 50%; }
+  .cal-day.other-month { opacity: .25; }
+
+  /* ── UPCOMING DEADLINES ──────────────── */
+  .deadline-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .deadline-item:last-child { border-bottom: none; }
+  .deadline-date-box {
+    width: 38px; text-align: center; background: var(--border); border-radius: 8px; padding: 4px 0; flex-shrink: 0;
+  }
+  .deadline-date-box .day { font-family: 'DM Serif Display', serif; font-size: 18px; line-height: 1; }
+  .deadline-date-box .mon { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .deadline-date-box.urgent { background: rgba(244,63,94,.15); border: 1px solid rgba(244,63,94,.3); }
+  .deadline-date-box.urgent .day { color: var(--rose); }
+  .deadline-info { flex: 1; min-width: 0; }
+  .deadline-task { font-size: 13px; font-weight: 500; }
+  .deadline-mk { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── TABS ────────────────────────────── */
+  .tabs { display: flex; gap: 2px; background: var(--surface); border-radius: 10px; padding: 4px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .tab-btn {
+    flex: 1; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px; border: none; border-radius: 7px; cursor: pointer;
+    background: none; color: var(--muted); transition: all .2s;
+  }
+  .tab-btn.active { background: var(--card); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+
+  /* ── FULL TASK TABLE ──────────────────── */
+  .task-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .task-table th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .task-table td { padding: 12px 12px; border-bottom: 1px solid rgba(37,42,58,.7); vertical-align: middle; }
+  .task-table tr:hover td { background: rgba(255,255,255,.025); }
+  .task-table tr:last-child td { border-bottom: none; }
+  .mk-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 6px; }
+
+  /* ── PROYEK PAGE ──────────────────────── */
+  .project-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .project-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; transition: transform .2s, box-shadow .2s;
+  }
+  .project-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+  .project-card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .project-emoji { font-size: 24px; }
+  .project-card-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .project-card-mk { font-size: 11px; color: var(--muted); }
+  .project-card-deadline { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin: 10px 0 6px; }
+  .project-card-deadline span { color: var(--amber); }
+  .members { display: flex; margin-top: 14px; }
+  .member-av {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--card);
+    background: linear-gradient(135deg, var(--teal), var(--purple));
+    display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700;
+    margin-left: -6px; color: #fff;
+  }
+  .member-av:first-child { margin-left: 0; }
+
+  /* ── LAPORAN PAGE ────────────────────── */
+  .chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 100px; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .bar-col { width: 100%; border-radius: 6px 6px 0 0; transition: height .6s ease; cursor: pointer; min-height: 4px; }
+  .bar-label { font-size: 10px; color: var(--muted); }
+  .bar-val { font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+
+  /* ── PIE CHART ──────────────────────── */
+  .pie-legend { display: flex; flex-direction: column; gap: 10px; }
+  .pie-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .pie-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .pie-name { flex: 1; color: var(--muted); }
+  .pie-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* ── KELOMPOK PAGE ───────────────────── */
+  .group-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px;
+  }
+  .group-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .member-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .member-table th { text-align: left; padding: 8px 10px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .06em; }
+  .member-table td { padding: 10px 10px; border-bottom: 1px solid rgba(37,42,58,.5); }
+  .member-table tr:last-child td { border-bottom: none; }
+  .peran-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: rgba(167,139,250,.15); color: var(--purple); }
+
+  /* ── NOTIFICATION DOT ────────────────── */
+  .notif-dot { display: inline-block; width: 8px; height: 8px; background: var(--rose); border-radius: 50%; margin-left: auto; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+
+  /* ── SCROLLBAR ───────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ── EMPTY STATE ─────────────────────── */
+  .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
+
+  /* ── FLOATING HINT ───────────────────── */
+  .hint-bar {
+    background: linear-gradient(90deg, rgba(245,166,35,.1), rgba(56,189,248,.07));
+    border: 1px solid rgba(245,166,35,.2); border-radius: 10px;
+    padding: 10px 16px; font-size: 12.5px; color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hint-bar strong { color: var(--amber); }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">📚 AcadTrack</div>
+    <div class="logo-sub">SIM Tugas & Proyek Kuliah</div>
+  </div>
+
+  <nav>
+    <div class="nav-section">Utama</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="nav-icon">⊞</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('tugas', this)">
+      <span class="nav-icon">☑</span> Manajemen Tugas <span class="badge">5</span>
+    </div>
+    <div class="nav-item" onclick="showPage('proyek', this)">
+      <span class="nav-icon">🗂</span> Proyek
+    </div>
+    <div class="nav-item" onclick="showPage('kelompok', this)">
+      <span class="nav-icon">👥</span> Kelompok
+    </div>
+
+    <div class="nav-section">Lainnya</div>
+    <div class="nav-item" onclick="showPage('kalender', this)">
+      <span class="nav-icon">📅</span> Kalender
+    </div>
+    <div class="nav-item" onclick="showPage('laporan', this)">
+      <span class="nav-icon">📊</span> Laporan & Statistik
+    </div>
+    <div class="nav-item" onclick="showPage('notifikasi', this)">
+      <span class="nav-icon">🔔</span> Notifikasi <span class="notif-dot"></span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="avatar">EK</div>
+    <div class="user-info">
+      <div class="user-name">Eki Kurniawan</div>
+      <div class="user-nim">NIM 2022001234</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────── -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">Dashboard <span>Semester Genap 2024/25</span></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="Cari tugas, proyek…" />
+    </div>
+    <button class="btn btn-ghost">📥 Impor RPS</button>
+    <button class="btn btn-primary" onclick="showPage('tugas',null)">+ Tugas Baru</button>
+  </div>
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: DASHBOARD                     ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page active" id="page-dashboard">
+
+    <div class="hint-bar">
+      <span>⚠️</span>
+      <span>Terdapat <strong>3 tugas mendesak</strong> yang deadline-nya dalam <strong>3 hari ke depan</strong>. Segera kerjakan!</span>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card" data-accent="amber">
+        <div class="stat-icon amber">☑</div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">Tugas Aktif</div>
+        <div class="stat-change up">↑ 3 tugas baru minggu ini</div>
+      </div>
+      <div class="stat-card" data-accent="rose">
+        <div class="stat-icon rose">🔥</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Mendesak (≤3 hari)</div>
+        <div class="stat-change down">↑ 2 dari minggu lalu</div>
+      </div>
+      <div class="stat-card" data-accent="teal">
+        <div class="stat-icon teal">🗂</div>
+        <div class="stat-value">4</div>
+        <div class="stat-label">Proyek Berjalan</div>
+        <div class="stat-change up">Rata-rata progres 62%</div>
+      </div>
+      <div class="stat-card" data-accent="green">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-value">18</div>
+        <div class="stat-label">Selesai Bulan Ini</div>
+        <div class="stat-change up">↑ +6 dari bulan lalu</div>
+      </div>
+    </div>
+
+    <!-- TWO COLUMN -->
+    <div class="two-col">
+
+      <!-- LEFT: Tugas Hari Ini -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h3>📋 Tugas Minggu Ini</h3>
+            <a onclick="showPage('tugas',null)" style="cursor:pointer">Lihat semua →</a>
+          </div>
+
+          <div class="task-item">
+            <div class="task-check" onclick="toggleCheck(this)"></div>
+            <div class="task-body">
+              <div class="task-title">Laporan Praktikum Algoritma Sorting</div>
+              <div class="task-meta">
+                <span>Pemrograman Lanjut</span><span class="dot"></span><span>Individu</span>
+              </div>
+            </div>
+            <span class="deadline-chip urgent">H-1</span>
+            <span class="priority-badge high">Tinggi</span>
+          </div>
+
+          <div class="task-item">
+            <div class="task-check" onclick="toggleCheck(this)"></div>
+            <div class="task-body">
+              <div class="task-title">ERD Sistem Informasi Perpustakaan</div>
+              <div class="task-meta"><span>Basis Data</span><span class="dot"></span><span>Kelompok</span></div>
+            </div>
+            <span class="deadline-chip urgent">H-2</span>
+            <span class="priority-badge high">Tinggi</span>
+          </div>
+
+          <div class="task-item">
+            <div class="task-check" onclick="toggleCheck(this)"></div>
+            <div class="task-body">
+              <div class="task-title">Resume Materi Sistem Operasi Bab 4</div>
+              <div class="task-meta"><span>Sistem Operasi</span><span class="dot"></span><span>Individu</span></div>
+            </div>
+            <span class="deadline-chip soon">H-4</span>
+            <span class="priority-badge medium">Sedang</span>
+          </div>
+
+          <div class="task-item">
+            <div class="task-check" onclick="toggleCheck(this)"></div>
+            <div class="task-body">
+              <div class="task-title">Proposal Penelitian Metode Agile</div>
+              <div class="task-meta"><span>RPL</span><span class="dot"></span><span>Kelompok</span></div>
+            </div>
+            <span class="deadline-chip soon">H-5</span>
+            <span class="priority-badge medium">Sedang</span>
+          </div>
+
+          <div class="task-item">
+            <div class="task-check done" onclick="toggleCheck(this)"></div>
+            <div class="task-body">
+              <div class="task-title" style="opacity:.5;text-decoration:line-through">Quiz Kalkulus Online – Bab Limit</div>
+              <div class="task-meta"><span>Kalkulus</span><span class="dot"></span><span>Individu</span></div>
+            </div>
+            <span class="status-tag selesai">Selesai</span>
+          </div>
+
+          <div class="task-item">
+            <div class="task-check done" onclick="toggleCheck(this)"></div>
+            <div class="task-body">
+              <div class="task-title" style="opacity:.5;text-decoration:line-through">Rangkuman Jurnal Jaringan Komputer</div>
+              <div class="task-meta"><span>Jaringan Komputer</span><span class="dot"></span><span>Individu</span></div>
+            </div>
+            <span class="status-tag selesai">Selesai</span>
+          </div>
+        </div>
+
+        <!-- PROGRESS PROYEK -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <h3>🚀 Progres Proyek</h3>
+            <a onclick="showPage('proyek',null)" style="cursor:pointer">Detail →</a>
+          </div>
+
+          <div class="project-item">
+            <div class="project-row">
+              <div><div class="project-name">Aplikasi Mobile Keuangan Mahasiswa</div><div class="project-mk">RPL – Kelompok A</div></div>
+              <div class="project-pct">72%</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill p-amber" style="width:72%"></div></div>
+            <div class="phase-pills">
+              <span class="phase-pill done">Perencanaan</span>
+              <span class="phase-pill done">Desain</span>
+              <span class="phase-pill active">Implementasi</span>
+              <span class="phase-pill">Presentasi</span>
+            </div>
+          </div>
+
+          <div class="project-item">
+            <div class="project-row">
+              <div><div class="project-name">Sistem Manajemen Perpustakaan</div><div class="project-mk">Basis Data – Kelompok B</div></div>
+              <div class="project-pct">45%</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill p-teal" style="width:45%"></div></div>
+            <div class="phase-pills">
+              <span class="phase-pill done">Perencanaan</span>
+              <span class="phase-pill active">Desain</span>
+              <span class="phase-pill">Implementasi</span>
+              <span class="phase-pill">Presentasi</span>
+            </div>
+          </div>
+
+          <div class="project-item">
+            <div class="project-row">
+              <div><div class="project-name">Analisis Keamanan Jaringan LAN</div><div class="project-mk">Keamanan Sistem – Kelompok C</div></div>
+              <div class="project-pct">88%</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill p-green" style="width:88%"></div></div>
+            <div class="phase-pills">
+              <span class="phase-pill done">Perencanaan</span>
+              <span class="phase-pill done">Desain</span>
+              <span class="phase-pill done">Implementasi</span>
+              <span class="phase-pill active">Presentasi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- MINI CALENDAR -->
+        <div class="card">
+          <div class="mini-cal-header">
+            <h3 style="font-size:14px;font-weight:600;flex:1">📅 April 2025</h3>
+            <button class="cal-nav">‹</button>
+            <button class="cal-nav">›</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <!-- UPCOMING DEADLINES -->
+        <div class="card">
+          <div class="card-header"><h3>⏰ Deadline Mendatang</h3></div>
+
+          <div class="deadline-item">
+            <div class="deadline-date-box urgent">
+              <div class="day">08</div><div class="mon">Apr</div>
+            </div>
+            <div class="deadline-info">
+              <div class="deadline-task">Laporan Praktikum Sorting</div>
+              <div class="deadline-mk">Pemrograman Lanjut • Individu</div>
+            </div>
+            <span class="status-tag proses">Dikerjakan</span>
+          </div>
+
+          <div class="deadline-item">
+            <div class="deadline-date-box urgent">
+              <div class="day">09</div><div class="mon">Apr</div>
+            </div>
+            <div class="deadline-info">
+              <div class="deadline-task">ERD Sistem Perpustakaan</div>
+              <div class="deadline-mk">Basis Data • Kelompok</div>
+            </div>
+            <span class="status-tag proses">Dikerjakan</span>
+          </div>
+
+          <div class="deadline-item">
+            <div class="deadline-date-box">
+              <div class="day">11</div><div class="mon">Apr</div>
+            </div>
+            <div class="deadline-info">
+              <div class="deadline-task">Resume SO Bab 4</div>
+              <div class="deadline-mk">Sistem Operasi • Individu</div>
+            </div>
+            <span class="status-tag belum">Belum Mulai</span>
+          </div>
+
+          <div class="deadline-item">
+            <div class="deadline-date-box">
+              <div class="day">14</div><div class="mon">Apr</div>
+            </div>
+            <div class="deadline-info">
+              <div class="deadline-task">Proposal Penelitian Agile</div>
+              <div class="deadline-mk">RPL • Kelompok</div>
+            </div>
+            <span class="status-tag review">Review</span>
+          </div>
+
+          <div class="deadline-item">
+            <div class="deadline-date-box">
+              <div class="day">20</div><div class="mon">Apr</div>
+            </div>
+            <div class="deadline-info">
+              <div class="deadline-task">Presentasi Proyek Keamanan Jaringan</div>
+              <div class="deadline-mk">Keamanan Sistem • Kelompok</div>
+            </div>
+            <span class="status-tag proses">Dikerjakan</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-dashboard -->
+
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: MANAJEMEN TUGAS              ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page" id="page-tugas">
+    <div>
+      <div class="section-label">Modul</div>
+      <div class="section-title">Manajemen Tugas</div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="tabs" style="margin-bottom:0;flex:1;max-width:500px">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-semua')">Semua (12)</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-aktif')">Aktif (7)</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-selesai2')">Selesai (5)</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-terlambat')">Terlambat (0)</button>
+      </div>
+      <select style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+        <option>Semua MK</option>
+        <option>Pemrograman Lanjut</option>
+        <option>Basis Data</option>
+        <option>Sistem Operasi</option>
+        <option>RPL</option>
+      </select>
+      <button class="btn btn-primary">+ Tugas Baru</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="task-table">
+        <thead>
+          <tr>
+            <th style="width:36px"></th>
+            <th>Judul Tugas</th>
+            <th>Mata Kuliah</th>
+            <th>Jenis</th>
+            <th>Deadline</th>
+            <th>Prioritas</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="task-check" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500">Laporan Praktikum Sorting</div><div style="font-size:11px;color:var(--muted)">Bobot: 15%</div></td>
+            <td><span class="mk-tag" style="background:rgba(251,113,133,.12);color:var(--rose)">Pemrog. Lanjut</span></td>
+            <td style="color:var(--muted);font-size:12px">Individu</td>
+            <td><span class="deadline-chip urgent">08 Apr · H-1</span></td>
+            <td><span class="priority-badge high">Tinggi</span></td>
+            <td><span class="status-tag proses">Dikerjakan</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Edit</button></td>
+          </tr>
+          <tr>
+            <td><div class="task-check" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500">ERD Sistem Perpustakaan</div><div style="font-size:11px;color:var(--muted)">Bobot: 20%</div></td>
+            <td><span class="mk-tag" style="background:rgba(56,189,248,.12);color:var(--teal)">Basis Data</span></td>
+            <td style="color:var(--muted);font-size:12px">Kelompok</td>
+            <td><span class="deadline-chip urgent">09 Apr · H-2</span></td>
+            <td><span class="priority-badge high">Tinggi</span></td>
+            <td><span class="status-tag review">Review</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Edit</button></td>
+          </tr>
+          <tr>
+            <td><div class="task-check" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500">Resume SO Bab 4</div><div style="font-size:11px;color:var(--muted)">Bobot: 5%</div></td>
+            <td><span class="mk-tag" style="background:rgba(167,139,250,.12);color:var(--purple)">Sistem Operasi</span></td>
+            <td style="color:var(--muted);font-size:12px">Individu</td>
+            <td><span class="deadline-chip soon">11 Apr · H-4</span></td>
+            <td><span class="priority-badge medium">Sedang</span></td>
+            <td><span class="status-tag belum">Belum Mulai</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Edit</button></td>
+          </tr>
+          <tr>
+            <td><div class="task-check" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500">Proposal Penelitian Agile</div><div style="font-size:11px;color:var(--muted)">Bobot: 25%</div></td>
+            <td><span class="mk-tag" style="background:rgba(245,166,35,.12);color:var(--amber)">RPL</span></td>
+            <td style="color:var(--muted);font-size:12px">Kelompok</td>
+            <td><span class="deadline-chip soon">14 Apr · H-7</span></td>
+            <td><span class="priority-badge medium">Sedang</span></td>
+            <td><span class="status-tag review">Review</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Edit</button></td>
+          </tr>
+          <tr>
+            <td><div class="task-check" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500">Makalah Keamanan Password</div><div style="font-size:11px;color:var(--muted)">Bobot: 10%</div></td>
+            <td><span class="mk-tag" style="background:rgba(74,222,128,.12);color:var(--green)">Keamanan Sistem</span></td>
+            <td style="color:var(--muted);font-size:12px">Individu</td>
+            <td><span class="deadline-chip normal">18 Apr · H-11</span></td>
+            <td><span class="priority-badge low">Rendah</span></td>
+            <td><span class="status-tag belum">Belum Mulai</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Edit</button></td>
+          </tr>
+          <tr style="opacity:.55">
+            <td><div class="task-check done" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500;text-decoration:line-through">Quiz Kalkulus Online</div></td>
+            <td><span class="mk-tag" style="background:rgba(122,130,153,.1);color:var(--muted)">Kalkulus</span></td>
+            <td style="color:var(--muted);font-size:12px">Individu</td>
+            <td style="color:var(--muted);font-size:12px">01 Apr</td>
+            <td><span class="priority-badge medium">Sedang</span></td>
+            <td><span class="status-tag selesai">Selesai</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Lihat</button></td>
+          </tr>
+          <tr style="opacity:.55">
+            <td><div class="task-check done" onclick="toggleCheck(this)" style="margin:0 auto"></div></td>
+            <td><div style="font-weight:500;text-decoration:line-through">Rangkuman Jurnal Jaringan</div></td>
+            <td><span class="mk-tag" style="background:rgba(56,189,248,.12);color:var(--teal)">Jaringan</span></td>
+            <td style="color:var(--muted);font-size:12px">Individu</td>
+            <td style="color:var(--muted);font-size:12px">03 Apr</td>
+            <td><span class="priority-badge low">Rendah</span></td>
+            <td><span class="status-tag selesai">Selesai</span></td>
+            <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">Lihat</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /page-tugas -->
+
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: PROYEK                        ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page" id="page-proyek">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+      <div>
+        <div class="section-label">Modul</div>
+        <div class="section-title">Manajemen Proyek</div>
+      </div>
+      <button class="btn btn-primary">+ Proyek Baru</button>
+    </div>
+
+    <div class="project-cards">
+
+      <div class="project-card">
+        <div class="project-card-top">
+          <div class="project-emoji">📱</div>
+          <div>
+            <div class="project-card-name">App Keuangan Mahasiswa</div>
+            <div class="project-card-mk">RPL – Kelompok A</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-bottom:6px"><div class="progress-fill p-amber" style="width:72%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span>72% selesai</span><span style="color:var(--amber);font-family:'JetBrains Mono',monospace">Implementasi</span>
+        </div>
+        <div class="project-card-deadline">Deadline: <span>30 Jun 2025</span></div>
+        <div class="phase-pills">
+          <span class="phase-pill done">Perencanaan</span>
+          <span class="phase-pill done">Desain UI</span>
+          <span class="phase-pill active">Backend API</span>
+          <span class="phase-pill">Presentasi</span>
+        </div>
+        <div class="members" style="margin-top:14px">
+          <div class="member-av">EK</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--rose),var(--purple))">RA</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--teal),var(--green))">DN</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--amber),var(--rose))">MF</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card-top">
+          <div class="project-emoji">📚</div>
+          <div>
+            <div class="project-card-name">Sistem Manajemen Perpustakaan</div>
+            <div class="project-card-mk">Basis Data – Kelompok B</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-bottom:6px"><div class="progress-fill p-teal" style="width:45%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span>45% selesai</span><span style="color:var(--teal);font-family:'JetBrains Mono',monospace">Desain</span>
+        </div>
+        <div class="project-card-deadline">Deadline: <span>15 Mei 2025</span></div>
+        <div class="phase-pills">
+          <span class="phase-pill done">Perencanaan</span>
+          <span class="phase-pill active">Desain DB</span>
+          <span class="phase-pill">Implementasi</span>
+          <span class="phase-pill">Presentasi</span>
+        </div>
+        <div class="members" style="margin-top:14px">
+          <div class="member-av">EK</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--purple),var(--teal))">AS</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--green),var(--amber))">YP</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card-top">
+          <div class="project-emoji">🔒</div>
+          <div>
+            <div class="project-card-name">Analisis Keamanan Jaringan LAN</div>
+            <div class="project-card-mk">Keamanan Sistem – Kelompok C</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-bottom:6px"><div class="progress-fill p-green" style="width:88%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span>88% selesai</span><span style="color:var(--green);font-family:'JetBrains Mono',monospace">Presentasi</span>
+        </div>
+        <div class="project-card-deadline">Deadline: <span>20 Apr 2025</span></div>
+        <div class="phase-pills">
+          <span class="phase-pill done">Perencanaan</span>
+          <span class="phase-pill done">Analisis</span>
+          <span class="phase-pill done">Implementasi</span>
+          <span class="phase-pill active">Presentasi</span>
+        </div>
+        <div class="members" style="margin-top:14px">
+          <div class="member-av">EK</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--rose),var(--amber))">FH</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--purple),var(--rose))">NL</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--teal),var(--purple))">RB</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card-top">
+          <div class="project-emoji">🤖</div>
+          <div>
+            <div class="project-card-name">Chatbot Layanan Akademik</div>
+            <div class="project-card-mk">Kecerdasan Buatan – Kelompok D</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-bottom:6px"><div class="progress-fill p-purple" style="width:30%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span>30% selesai</span><span style="color:var(--purple);font-family:'JetBrains Mono',monospace">Perencanaan</span>
+        </div>
+        <div class="project-card-deadline">Deadline: <span>20 Jul 2025</span></div>
+        <div class="phase-pills">
+          <span class="phase-pill done">Perencanaan</span>
+          <span class="phase-pill active">Dataset</span>
+          <span class="phase-pill">Training Model</span>
+          <span class="phase-pill">Presentasi</span>
+        </div>
+        <div class="members" style="margin-top:14px">
+          <div class="member-av">EK</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--amber),var(--green))">IS</div>
+          <div class="member-av" style="background:linear-gradient(135deg,var(--rose),var(--teal))">WA</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /page-proyek -->
+
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: KELOMPOK                      ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page" id="page-kelompok">
+    <div>
+      <div class="section-label">Modul</div>
+      <div class="section-title">Data Kelompok</div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-title">📱 Kelompok A – App Keuangan Mahasiswa <span style="font-size:11px;color:var(--muted);font-weight:400">(RPL)</span></div>
+      <table class="member-table">
+        <thead><tr><th>Nama</th><th>NIM</th><th>Peran</th><th>Kontak</th><th>Status Jobdesk</th></tr></thead>
+        <tbody>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px">EK</div>Eki Kurniawan</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001234</td><td><span class="peran-tag">Project Manager</span></td><td style="color:var(--muted);font-size:12px">eki@email.com</td><td><span class="status-tag proses">Dikerjakan</span></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--rose),var(--purple))">RA</div>Rina Amalia</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001235</td><td><span class="peran-tag">UI/UX Designer</span></td><td style="color:var(--muted);font-size:12px">rina@email.com</td><td><span class="status-tag selesai">Selesai</span></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--teal),var(--green))">DN</div>Dani Nugraha</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001236</td><td><span class="peran-tag">Backend Dev</span></td><td style="color:var(--muted);font-size:12px">dani@email.com</td><td><span class="status-tag proses">Dikerjakan</span></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--amber),var(--rose))">MF</div>Mira Fitriani</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001237</td><td><span class="peran-tag">Tester/QA</span></td><td style="color:var(--muted);font-size:12px">mira@email.com</td><td><span class="status-tag belum">Belum Mulai</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="group-card">
+      <div class="group-title">📚 Kelompok B – Sistem Perpustakaan <span style="font-size:11px;color:var(--muted);font-weight:400">(Basis Data)</span></div>
+      <table class="member-table">
+        <thead><tr><th>Nama</th><th>NIM</th><th>Peran</th><th>Kontak</th><th>Status Jobdesk</th></tr></thead>
+        <tbody>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px">EK</div>Eki Kurniawan</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001234</td><td><span class="peran-tag">DBA</span></td><td style="color:var(--muted);font-size:12px">eki@email.com</td><td><span class="status-tag proses">Dikerjakan</span></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--purple),var(--teal))">AS</div>Andi Syahputra</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001240</td><td><span class="peran-tag">Analis</span></td><td style="color:var(--muted);font-size:12px">andi@email.com</td><td><span class="status-tag selesai">Selesai</span></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="member-av" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--green),var(--amber))">YP</div>Yuni Pratiwi</div></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">2022001241</td><td><span class="peran-tag">Frontend Dev</span></td><td style="color:var(--muted);font-size:12px">yuni@email.com</td><td><span class="status-tag review">Review</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /page-kelompok -->
+
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: KALENDER                      ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page" id="page-kalender">
+    <div>
+      <div class="section-label">Modul</div>
+      <div class="section-title">Kalender Deadline</div>
+    </div>
+
+    <div class="two-col" style="grid-template-columns:1fr 300px">
+      <div class="card">
+        <div id="bigCalHeader" style="display:flex;align-items:center;margin-bottom:20px">
+          <h3 style="font-family:'DM Serif Display',serif;font-size:20px;flex:1">April 2025</h3>
+          <button class="cal-nav">‹</button>
+          <button class="cal-nav">›</button>
+        </div>
+        <div class="cal-grid" style="gap:4px" id="bigCalGrid"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-header"><h3>📌 Legenda</h3></div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+            <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:var(--rose)"></div><span>Deadline Mendesak (≤3 hari)</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:var(--amber)"></div><span>Deadline Dekat (≤7 hari)</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:var(--teal)"></div><span>Deadline Normal</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:var(--amber);border:2px solid #fff"></div><span>Hari Ini</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>📋 Event Bulan Ini</h3></div>
+          <div class="deadline-item">
+            <div class="deadline-date-box urgent"><div class="day">08</div><div class="mon">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-task">Laporan Praktikum</div><div class="deadline-mk">Pemrog. Lanjut</div></div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-date-box urgent"><div class="day">09</div><div class="mon">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-task">ERD Perpustakaan</div><div class="deadline-mk">Basis Data</div></div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-date-box"><div class="day">11</div><div class="mon">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-task">Resume SO Bab 4</div><div class="deadline-mk">Sistem Operasi</div></div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-date-box"><div class="day">20</div><div class="mon">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-task">Presentasi Keamanan</div><div class="deadline-mk">Keamanan Sistem</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-kalender -->
+
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: LAPORAN & STATISTIK           ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page" id="page-laporan">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+      <div>
+        <div class="section-label">Modul</div>
+        <div class="section-title">Laporan & Statistik</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost">📊 Ekspor Excel</button>
+        <button class="btn btn-ghost">📄 Ekspor PDF</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card" data-accent="green">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-value">18</div>
+        <div class="stat-label">Total Selesai</div>
+      </div>
+      <div class="stat-card" data-accent="amber">
+        <div class="stat-icon amber">⏳</div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">Masih Berjalan</div>
+      </div>
+      <div class="stat-card" data-accent="rose">
+        <div class="stat-icon rose">⚠️</div>
+        <div class="stat-value">0</div>
+        <div class="stat-label">Terlambat</div>
+      </div>
+      <div class="stat-card" data-accent="teal">
+        <div class="stat-icon teal">📈</div>
+        <div class="stat-value">62%</div>
+        <div class="stat-label">Rata-rata Progres Proyek</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- BAR CHART: Tugas per Minggu -->
+      <div class="card">
+        <div class="card-header"><h3>📊 Tugas Selesai per Minggu</h3></div>
+        <div class="chart-bars">
+          <div class="bar-wrap">
+            <div class="bar-val" style="color:var(--muted)">3</div>
+            <div class="bar-col" style="height:50%;background:var(--teal);opacity:.7"></div>
+            <div class="bar-label">W1</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-val" style="color:var(--muted)">5</div>
+            <div class="bar-col" style="height:70%;background:var(--teal)"></div>
+            <div class="bar-label">W2</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-val" style="color:var(--amber)">7</div>
+            <div class="bar-col" style="height:90%;background:var(--amber)"></div>
+            <div class="bar-label">W3</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-val" style="color:var(--muted)">3</div>
+            <div class="bar-col" style="height:40%;background:var(--teal);opacity:.6"></div>
+            <div class="bar-label">W4</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIE: Status Tugas -->
+      <div class="card">
+        <div class="card-header"><h3>🥧 Distribusi Status Tugas</h3></div>
+        <div style="display:flex;gap:20px;align-items:center">
+          <svg width="100" height="100" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" stroke-width="4"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--green)"  stroke-width="4" stroke-dasharray="60 40" stroke-dashoffset="25"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--teal)"   stroke-width="4" stroke-dasharray="25 75" stroke-dashoffset="-35"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--purple)" stroke-width="4" stroke-dasharray="10 90" stroke-dashoffset="-60"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--muted)"  stroke-width="4" stroke-dasharray="5 95"  stroke-dashoffset="-70"/>
+          </svg>
+          <div class="pie-legend">
+            <div class="pie-row"><div class="pie-dot" style="background:var(--green)"></div><span class="pie-name">Selesai</span><span class="pie-num">18</span></div>
+            <div class="pie-row"><div class="pie-dot" style="background:var(--teal)"></div><span class="pie-name">Dikerjakan</span><span class="pie-num">7</span></div>
+            <div class="pie-row"><div class="pie-dot" style="background:var(--purple)"></div><span class="pie-name">Review</span><span class="pie-num">3</span></div>
+            <div class="pie-row"><div class="pie-dot" style="background:var(--muted)"></div><span class="pie-name">Belum Mulai</span><span class="pie-num">2</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Per Mata Kuliah -->
+      <div class="card" style="grid-column:span 2">
+        <div class="card-header"><h3>📚 Ringkasan per Mata Kuliah</h3></div>
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Mata Kuliah</th>
+              <th>Total Tugas</th>
+              <th>Selesai</th>
+              <th>Berjalan</th>
+              <th>Terlambat</th>
+              <th>Progres</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="mk-tag" style="background:rgba(251,113,133,.12);color:var(--rose)">Pemrograman Lanjut</span></td>
+              <td>5</td><td>4</td><td>1</td><td>0</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill p-amber" style="width:80%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber)">80%</span></div></td>
+            </tr>
+            <tr>
+              <td><span class="mk-tag" style="background:rgba(56,189,248,.12);color:var(--teal)">Basis Data</span></td>
+              <td>6</td><td>3</td><td>2</td><td>0</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill p-teal" style="width:50%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal)">50%</span></div></td>
+            </tr>
+            <tr>
+              <td><span class="mk-tag" style="background:rgba(167,139,250,.12);color:var(--purple)">Sistem Operasi</span></td>
+              <td>4</td><td>3</td><td>1</td><td>0</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill p-purple" style="width:75%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple)">75%</span></div></td>
+            </tr>
+            <tr>
+              <td><span class="mk-tag" style="background:rgba(245,166,35,.12);color:var(--amber)">RPL</span></td>
+              <td>5</td><td>4</td><td>1</td><td>0</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill p-amber" style="width:80%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber)">80%</span></div></td>
+            </tr>
+            <tr>
+              <td><span class="mk-tag" style="background:rgba(74,222,128,.12);color:var(--green)">Keamanan Sistem</span></td>
+              <td>4</td><td>4</td><td>0</td><td>0</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill p-green" style="width:100%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">100%</span></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /page-laporan -->
+
+
+  <!-- ╔══════════════════════════════════════╗ -->
+  <!-- ║  PAGE: NOTIFIKASI                    ║ -->
+  <!-- ╚══════════════════════════════════════╝ -->
+  <div class="page" id="page-notifikasi">
+    <div>
+      <div class="section-label">Modul</div>
+      <div class="section-title">Notifikasi & Pengingat</div>
+    </div>
+
+    <div class="card" style="max-width:680px">
+      <div style="display:flex;flex-direction:column;gap:0">
+
+        <div style="display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(244,63,94,.15);color:var(--rose);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔥</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">H-1 · Laporan Praktikum Sorting</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Pemrograman Lanjut • Deadline: 08 April 2025 • Status: Sedang Dikerjakan</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">Baru saja</div>
+        </div>
+
+        <div style="display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(244,63,94,.15);color:var(--rose);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚠️</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">H-2 · ERD Sistem Perpustakaan</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Basis Data • Deadline: 09 April 2025 • Status: Menunggu Review</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">1 jam lalu</div>
+        </div>
+
+        <div style="display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(245,166,35,.15);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📅</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">H-4 · Resume SO Bab 4 belum dimulai</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Sistem Operasi • Deadline: 11 April 2025 • Status: Belum Mulai</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">3 jam lalu</div>
+        </div>
+
+        <div style="display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);align-items:flex-start;opacity:.6">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(74,222,128,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✅</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">Tugas Quiz Kalkulus berhasil diselesaikan</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Kalkulus • Selesai pada 01 April 2025</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">6 hari lalu</div>
+        </div>
+
+        <div style="display:flex;gap:14px;padding:16px 0;align-items:flex-start;opacity:.6">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(56,189,248,.15);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🗂</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">Progres Proyek App Keuangan mencapai 70%</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">RPL • Fase: Implementasi Backend API</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">1 minggu lalu</div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /page-notifikasi -->
+
+</main>
+
+<script>
+  // ── NAVIGATION ────────────────────────────
+  function showPage(id, navEl) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (navEl) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      navEl.classList.add('active');
+    }
+  }
+
+  // ── TAB SWITCHER ──────────────────────────
+  function switchTab(btn, tabId) {
+    btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ── CHECKBOXES ────────────────────────────
+  function toggleCheck(el) {
+    el.classList.toggle('done');
+    const row = el.closest('.task-item') || el.closest('tr');
+    if (!row) return;
+    const title = row.querySelector('.task-title');
+    if (title) {
+      if (el.classList.contains('done')) {
+        title.style.opacity = '.5';
+        title.style.textDecoration = 'line-through';
+      } else {
+        title.style.opacity = '';
+        title.style.textDecoration = '';
+      }
+    }
+  }
+
+  // ── MINI CALENDAR ─────────────────────────
+  function buildCalendar(containerId, cellSize) {
+    const deadlineDays = [8, 9, 11, 14, 20];
+    const today = 7; // April 7
+    const firstDay = 2; // April 1 = Tuesday (0=Sun)
+    const daysInMonth = 30;
+    const dows = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    dows.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      container.appendChild(el);
+    });
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day other-month';
+      el.textContent = 30 - firstDay + 1 + i;
+      container.appendChild(el);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      if (d === today) el.classList.add('today');
+      else if (deadlineDays.includes(d)) el.classList.add('has-task');
+      el.textContent = d;
+      container.appendChild(el);
+    }
+  }
+
+  buildCalendar('calGrid');
+  buildCalendar('bigCalGrid');
+</script>
+</body>
+</html>
