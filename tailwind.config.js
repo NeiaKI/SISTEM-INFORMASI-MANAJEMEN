@@ -2,9 +2,9 @@
 module.exports = {
   darkMode: "class",
   content: [
-    "./app/**/*.{js,jsx,mdx}",
-    "./components/**/*.{js,jsx,mdx}",
-    "./data/**/*.{js,jsx,mdx}",
+    "./app/**/*.{js,jsx,ts,tsx,mdx}",
+    "./components/**/*.{js,jsx,ts,tsx,mdx}",
+    "./data/**/*.{js,jsx,ts,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -125,6 +125,10 @@ module.exports = {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        slideInRight: {
+          "0%": { opacity: "0", transform: "translateX(100%)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.5s ease-out both",
@@ -134,6 +138,7 @@ module.exports = {
         float: "float 8s ease-in-out infinite alternate",
         pulse_soft: "pulse_soft 4s ease-in-out infinite",
         spin_slow: "spin_slow 20s linear infinite",
+        slideInRight: "slideInRight 0.28s cubic-bezier(0.32,0.72,0,1) both",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

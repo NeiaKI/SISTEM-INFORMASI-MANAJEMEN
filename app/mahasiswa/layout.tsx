@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function MahasiswaLayout({ children }) {
+export default function MahasiswaLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
@@ -105,10 +105,10 @@ export default function MahasiswaLayout({ children }) {
               
               <div className="h-px bg-mhs-border my-1" />
               
-              <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-mhs-card transition-colors text-[14px] font-medium text-mhs-text uppercase tracking-wider">
+              <Link href="/mahasiswa/profil" onClick={() => setIsProfileOpen(false)} className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-mhs-card transition-colors text-[14px] font-medium text-mhs-text uppercase tracking-wider">
                 <User size={18} className="text-mhs-text" />
                 DATA PRIBADI
-              </button>
+              </Link>
               
               <button onClick={handleLogout} className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-mhs-rose/10 transition-colors text-[14px] font-medium text-red-500 uppercase tracking-wider">
                 <LogOut size={18} className="text-red-500" />
@@ -144,6 +144,7 @@ export default function MahasiswaLayout({ children }) {
             {pathname === "/mahasiswa/kalender" && <><span>Kalender</span> <span className="text-mhs-amber">Deadline</span></>}
             {pathname === "/mahasiswa/laporan" && <><span>Laporan &amp;</span> <span className="text-mhs-amber">Statistik</span></>}
             {pathname === "/mahasiswa/notifikasi" && <><span>Notifikasi &amp;</span> <span className="text-mhs-amber">Pengingat</span></>}
+            {pathname === "/mahasiswa/profil" && <><span>Data</span> <span className="text-mhs-amber">Pribadi</span></>}
           </div>
           
           <div className="relative">
@@ -157,9 +158,6 @@ export default function MahasiswaLayout({ children }) {
           
           <button className="bg-mhs-card text-mhs-muted border border-mhs-border hover:text-mhs-text hover:border-mhs-muted px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
             📥 Impor RPS
-          </button>
-          <button className="bg-mhs-amber text-mhs-on hover:bg-mhs-amber-2 hover:-translate-y-[1px] hover:shadow-[0_4px_16px_rgba(245,166,35,0.35)] px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
-            + Tugas Baru
           </button>
         </header>
 

@@ -46,7 +46,7 @@ const faqs = [
 ];
 
 export default function LandingPage() {
-  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -54,7 +54,7 @@ export default function LandingPage() {
     setMounted(true);
   }, []);
 
-  const toggleFaq = (index) => {
+  const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 

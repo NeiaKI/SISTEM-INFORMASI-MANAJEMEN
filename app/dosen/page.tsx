@@ -106,6 +106,62 @@ export default function DosenDashboard() {
               </table>
             </div>
           </div>
+
+          {/* BAR CHART — Pengumpulan per Minggu */}
+          <div className="bg-paper border-[1.5px] border-border rounded-[14px] p-5.5 shadow-[0_1px_6px_rgba(26,26,20,0.08)]">
+            <div className="flex items-center mb-5">
+              <h3 className="text-[14px] font-semibold text-ink flex-1">📊 Pengumpulan per Minggu</h3>
+              <span className="text-[11px] text-muted">Mar – Apr 2026</span>
+            </div>
+
+            {/* Bars */}
+            <div className="flex items-end gap-2.5 h-[110px] border-b border-border/60 pb-0 mb-3">
+              {[
+                { val: 42, label: "W1 Mar", h: 55,  color: "bg-forest",      opacity: "opacity-60",  valCls: "text-ink-2" },
+                { val: 67, label: "W2 Mar", h: 78,  color: "bg-forest",      opacity: "opacity-75",  valCls: "text-ink-2" },
+                { val: 51, label: "W3 Mar", h: 62,  color: "bg-forest",      opacity: "opacity-65",  valCls: "text-ink-2" },
+                { val: 88, label: "W4 Mar", h: 100, color: "bg-forest",      opacity: "",            valCls: "text-forest font-semibold" },
+                { val: 27, label: "W1 Apr", h: 33,  color: "bg-gold",        opacity: "",            valCls: "text-gold font-semibold", current: true },
+              ].map((bar, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                  <span className={`text-[11px] font-mono ${bar.valCls}`}>{bar.val}</span>
+                  <div
+                    className={`w-full rounded-t-[6px] ${bar.color} ${bar.opacity} transition-all min-h-[4px]`}
+                    style={{ height: `${bar.h}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Labels */}
+            <div className="flex gap-2.5">
+              {[
+                { label: "W1 Mar" },
+                { label: "W2 Mar" },
+                { label: "W3 Mar" },
+                { label: "W4 Mar" },
+                { label: "W1 Apr ←", gold: true },
+              ].map((bar, i) => (
+                <div key={i} className={`flex-1 text-center text-[10px] ${bar.gold ? "text-gold font-semibold" : "text-muted"}`}>
+                  {bar.label}
+                </div>
+              ))}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-4 mt-3.5 pt-3 border-t border-border/60">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-forest" />
+                <span className="text-[11px] text-muted">Minggu Lalu</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-gold" />
+                <span className="text-[11px] text-muted">Minggu Ini</span>
+              </div>
+              <span className="text-[11px] text-muted ml-auto">Total: <span className="font-mono text-ink-2 font-semibold">275</span> pengumpulan</span>
+            </div>
+          </div>
+
         </div>
 
         {/* RIGHT COLUMN */}

@@ -1,18 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, X, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function DosenLayout({ children }) {
+export default function DosenLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalSaved, setModalSaved] = useState(false);
+  const [form, setForm] = useState({ title: "", course: "", type: "individu", deadline: "", description: "" });
+
+  const COURSES = ["Analisis SI", "Keamanan Sistem", "SI Enterprise", "PPL"];
+
+  const handleCreateTask = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!form.title || !form.course || !form.deadline) return;
+    const existing = JSON.parse(typeof window !== "undefined" ? localStorage.getItem("dosen_new_tasks") || "[]" : "[]");
+    const newTask = {
+      id: `new-${Date.now()}`,
+      title: form.title,
+      course: form.course,
+      type: form.type,
+      deadline: form.deadline,
+      status: "belum mulai",
+      priority: "sedang",
+      progress: 0,
+      note: form.description,
+      submissions: [],
+    };
+    localStorage.setItem("dosen_new_tasks", JSON.stringify([...existing, newTask]));
+    setForm({ title: "", course: "", type: "individu", deadline: "", description: "" });
+    setIsModalOpen(false);
+    setModalSaved(true);
+    setTimeout(() => setModalSaved(false), 3000);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -105,10 +133,10 @@ export default function DosenLayout({ children }) {
               
               <div className="h-px bg-border my-1" />
               
-              <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-cream transition-colors text-[14px] font-medium text-ink uppercase tracking-wider">
+              <Link href="/dosen/profil" onClick={() => setIsProfileOpen(false)} className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-cream transition-colors text-[14px] font-medium text-ink uppercase tracking-wider">
                 <User size={18} className="text-ink" />
                 DATA PRIBADI
-              </button>
+              </Link>
               
               <button onClick={handleLogout} className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-rose/10 transition-colors text-[14px] font-medium text-red-500 uppercase tracking-wider">
                 <LogOut size={18} className="text-red-500" />
@@ -144,6 +172,7 @@ export default function DosenLayout({ children }) {
             {pathname === "/dosen/matakuliah" && <><span>Mata Kuliah</span> <span className="text-forest">yang Diampu</span></>}
             {pathname === "/dosen/laporan" && <><span>Laporan &amp;</span> <span className="text-forest">Ekspor</span></>}
             {pathname === "/dosen/notifikasi" && <><span>Notifikasi</span> <span className="text-forest">Dosen</span></>}
+            {pathname === "/dosen/profil" && <><span>Data</span> <span className="text-forest">Pribadi</span></>}
           </div>
           
           <div className="relative">
@@ -158,7 +187,7 @@ export default function DosenLayout({ children }) {
           <button className="bg-paper text-ink-2 border-[1.5px] border-border hover:text-forest hover:border-forest px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
             📥 Unduh Rekap
           </button>
-          <button className="bg-forest text-white hover:bg-forest-2 hover:-translate-y-[1px] hover:shadow-[0_4px_14px_rgba(45,90,61,0.25)] px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
+          <button onClick={() => setIsModalOpen(true)} className="bg-forest text-white hover:bg-forest-2 hover:-translate-y-[1px] hover:shadow-[0_4px_14px_rgba(45,90,61,0.25)] px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
             + Buat Tugas
           </button>
 
@@ -166,9 +195,108 @@ export default function DosenLayout({ children }) {
 
         {/* PAGE CONTENT */}
         <div className="p-8 animate-fadeIn">
+          {modalSaved && (
+            <div className="fixed top-5 right-5 z-[200] flex items-center gap-2.5 bg-paper border border-forest/30 text-forest px-4 py-3 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] text-[13.5px] font-medium animate-fadeIn">
+              <CheckCircle size={16} />
+              Tugas baru berhasil dibuat!
+            </div>
+          )}
           {children}
         </div>
       </main>
+
+      {/* CREATE TASK MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="relative bg-paper border border-border rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] w-full max-w-lg animate-fadeIn">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <div>
+                <h2 className="font-serif text-[18px] text-ink">Buat Tugas Baru</h2>
+                <div className="text-[12px] text-muted mt-0.5">Tugas akan langsung tampil di halaman Manajemen Tugas</div>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="text-muted hover:text-ink transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleCreateTask} className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-[11px] text-muted uppercase tracking-wider mb-1.5">Judul Tugas <span className="text-rose">*</span></label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={e => setForm(f => ({...f, title: e.target.value}))}
+                  placeholder="cth. Laporan Analisis Kebutuhan Sistem"
+                  className="w-full bg-cream border-[1.5px] border-border text-ink rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-forest transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] text-muted uppercase tracking-wider mb-1.5">Mata Kuliah <span className="text-rose">*</span></label>
+                  <select
+                    value={form.course}
+                    onChange={e => setForm(f => ({...f, course: e.target.value}))}
+                    className="w-full bg-cream border-[1.5px] border-border text-ink rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-forest transition-colors"
+                    required
+                  >
+                    <option value="">Pilih Mata Kuliah</option>
+                    {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] text-muted uppercase tracking-wider mb-1.5">Jenis Tugas</label>
+                  <select
+                    value={form.type}
+                    onChange={e => setForm(f => ({...f, type: e.target.value}))}
+                    className="w-full bg-cream border-[1.5px] border-border text-ink rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-forest transition-colors"
+                  >
+                    <option value="individu">Individu</option>
+                    <option value="kelompok">Kelompok</option>
+                    <option value="proyek">Proyek</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-muted uppercase tracking-wider mb-1.5">Deadline <span className="text-rose">*</span></label>
+                <input
+                  type="date"
+                  value={form.deadline}
+                  onChange={e => setForm(f => ({...f, deadline: e.target.value}))}
+                  className="w-full bg-cream border-[1.5px] border-border text-ink rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-forest transition-colors"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-muted uppercase tracking-wider mb-1.5">Deskripsi / Catatan</label>
+                <textarea
+                  value={form.description}
+                  onChange={e => setForm(f => ({...f, description: e.target.value}))}
+                  placeholder="Instruksi tugas, rubrik penilaian, dsb."
+                  rows={3}
+                  className="w-full bg-cream border-[1.5px] border-border text-ink rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-forest transition-colors resize-none"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 border-[1.5px] border-border text-muted hover:text-ink hover:border-ink/30 py-2 rounded-lg text-[13px] font-semibold transition-all">
+                  Batal
+                </button>
+                <button type="submit" className="flex-1 bg-forest text-white hover:bg-forest-2 py-2 rounded-lg text-[13px] font-semibold transition-all hover:shadow-[0_4px_14px_rgba(45,90,61,0.25)]">
+                  Buat Tugas
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

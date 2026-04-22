@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run *)",
       "WebFetch(domain:dribbble.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm install *)"
     ]
   }
 }

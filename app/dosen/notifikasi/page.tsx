@@ -73,7 +73,7 @@ export default function DosenNotifikasiPage() {
   const allNotifs = [
     ...STATIC_NOTIFS,
     ...data.notifications.map(n => {
-      const cfg = KIND_CONFIG[n.kind] || KIND_CONFIG.info;
+      const cfg = KIND_CONFIG[n.kind as keyof typeof KIND_CONFIG] ?? KIND_CONFIG.info;
       return {
         icon: cfg.icon,
         bg: cfg.bg,

@@ -1,4 +1,5 @@
 import "./globals.css";
+import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
@@ -7,7 +8,7 @@ export const metadata = {
     "Frontend prototype Sistem Manajemen Tugas & Proyek Kuliah berbasis PRD — Next.js, Tailwind CSS, dark premium UI.",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id" suppressHydrationWarning>
       <head>

@@ -15,7 +15,7 @@ const BAR_COLORS = ["bg-mhs-teal/70", "bg-mhs-teal", "bg-mhs-amber", "bg-mhs-tea
 const totalDone = data.tasks.filter(t => t.status === "selesai").length;
 const totalActive = data.tasks.filter(t => t.status !== "selesai").length;
 const totalLate = data.tasks.filter(t => {
-  const diff = Math.ceil((new Date(t.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   return diff < 0 && t.status !== "selesai";
 }).length;
 const avgProgress = Math.round(data.projects.reduce((a, p) => a + p.progress, 0) / data.projects.length);
@@ -26,7 +26,7 @@ const courseStats = courses.map((course, idx) => {
   const done = tasks.filter(t => t.status === "selesai").length;
   const running = tasks.filter(t => t.status !== "selesai").length;
   const late = tasks.filter(t => {
-    const diff = Math.ceil((new Date(t.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return diff < 0 && t.status !== "selesai";
   }).length;
   const pct = Math.round((done / tasks.length) * 100);

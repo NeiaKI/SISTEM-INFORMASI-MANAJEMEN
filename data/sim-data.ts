@@ -151,7 +151,7 @@ const roleData = {
         course: "Basis Data",
         type: "individu",
         status: "sedang dikerjakan",
-        deadline: "2026-04-16",
+        deadline: "2026-04-28",
         priority: "kritis",
         progress: 72,
         note: "Normalisasi sudah selesai, tinggal review relasi dan naming.",
@@ -172,7 +172,7 @@ const roleData = {
         course: "Analisis SI",
         type: "kelompok",
         status: "belum mulai",
-        deadline: "2026-04-18",
+        deadline: "2026-05-02",
         priority: "tinggi",
         progress: 18,
         note: "Slide deck belum dibagi ke anggota kelompok.",
@@ -185,7 +185,7 @@ const roleData = {
         course: "PPL",
         type: "individu",
         status: "menunggu review",
-        deadline: "2026-04-17",
+        deadline: "2026-04-24",
         priority: "tinggi",
         progress: 85,
         note: "Draft sudah dikirim, menunggu masukan dosen.",
@@ -259,7 +259,7 @@ const roleData = {
         course: "Analisis SI",
         type: "kelompok",
         status: "sedang dikerjakan",
-        deadline: "2026-04-20",
+        deadline: "2026-04-26",
         priority: "sedang",
         progress: 44,
         note: "Butuh pembaruan jobdesk dan catatan meeting.",
@@ -1510,6 +1510,8 @@ const roleData = {
   },
 };
 
-export function createSeedData() {
-  return JSON.parse(JSON.stringify(roleData));
+export type SeedData = typeof roleData;
+
+export function createSeedData(): SeedData {
+  return JSON.parse(JSON.stringify(roleData)) as SeedData;
 }

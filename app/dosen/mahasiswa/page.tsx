@@ -2,51 +2,17 @@ import { createSeedData } from "@/data/sim-data";
 
 const data = createSeedData().dosen;
 
-const STUDENTS = [
-  {
-    name: "Eki Kurniawan",
-    email: "eki@email.com",
-    nim: "2022001234",
-    courses: "Pemrog. Lanjut, Basis Data",
-    done: 10,
-    total: 12,
-    avg: 87.5,
-    status: "aktif",
-    avatarGrad: "from-forest to-teal",
-  },
-  {
-    name: "Rina Amalia",
-    email: "rina@email.com",
-    nim: "2022001235",
-    courses: "Pemrog. Lanjut, RPL",
-    done: 12,
-    total: 12,
-    avg: 92.3,
-    status: "sangat_aktif",
-    avatarGrad: "from-[#c0392b] to-[#e74c3c]",
-  },
-  {
-    name: "Dani Nugraha",
-    email: "dani@email.com",
-    nim: "2022001236",
-    courses: "Pemrog. Lanjut, Keamanan",
-    done: 8,
-    total: 12,
-    avg: 74.0,
-    status: "cukup_aktif",
-    avatarGrad: "from-gold to-[#f39c12]",
-  },
-  {
-    name: "Andi Syahputra",
-    email: "andi@email.com",
-    nim: "2022001240",
-    courses: "Basis Data, RPL",
-    done: 5,
-    total: 12,
-    avg: 58.2,
-    status: "perlu_perhatian",
-    avatarGrad: "from-[#636e72] to-[#b2bec3]",
-  },
+type StudentStatus = "aktif" | "sangat_aktif" | "cukup_aktif" | "perlu_perhatian";
+
+const STUDENTS: Array<{
+  name: string; email: string; nim: string; courses: string;
+  done: number; total: number; avg: number;
+  status: StudentStatus; avatarGrad: string;
+}> = [
+  { name: "Eki Kurniawan",   email: "eki@email.com",  nim: "2022001234", courses: "Pemrog. Lanjut, Basis Data", done: 10, total: 12, avg: 87.5, status: "aktif",           avatarGrad: "from-forest to-teal" },
+  { name: "Rina Amalia",     email: "rina@email.com", nim: "2022001235", courses: "Pemrog. Lanjut, RPL",        done: 12, total: 12, avg: 92.3, status: "sangat_aktif",    avatarGrad: "from-[#c0392b] to-[#e74c3c]" },
+  { name: "Dani Nugraha",    email: "dani@email.com", nim: "2022001236", courses: "Pemrog. Lanjut, Keamanan",   done: 8,  total: 12, avg: 74.0, status: "cukup_aktif",     avatarGrad: "from-gold to-[#f39c12]" },
+  { name: "Andi Syahputra",  email: "andi@email.com", nim: "2022001240", courses: "Basis Data, RPL",            done: 5,  total: 12, avg: 58.2, status: "perlu_perhatian", avatarGrad: "from-[#636e72] to-[#b2bec3]" },
 ];
 
 const STATUS_MAP = {
@@ -70,7 +36,7 @@ const BAR_CLS = {
   perlu_perhatian:"from-rose to-[#e74c3c]",
 };
 
-function initials(name) {
+function initials(name: string) {
   return name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 

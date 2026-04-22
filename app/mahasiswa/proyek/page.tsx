@@ -25,7 +25,7 @@ const MEMBER_GRADIENTS = [
   "from-mhs-purple to-mhs-teal",
 ];
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -82,7 +82,7 @@ export default function ProyekPage() {
                 {project.deliverables.map((d, di) => (
                   <span
                     key={di}
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${PHASE_COLORS[d.status] || "bg-mhs-border text-mhs-muted"}`}
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${PHASE_COLORS[d.status as keyof typeof PHASE_COLORS] ?? "bg-mhs-border text-mhs-muted"}`}
                   >
                     {d.title}
                   </span>
@@ -128,7 +128,7 @@ export default function ProyekPage() {
                   <td className="py-3 px-5 text-mhs-muted">{d.owner}</td>
                   <td className="py-3 px-5 font-mono text-[12px] text-mhs-muted">{formatDate(d.deadline)}</td>
                   <td className="py-3 px-5">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${PHASE_COLORS[d.status] || "bg-mhs-border text-mhs-muted"}`}>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${PHASE_COLORS[d.status as keyof typeof PHASE_COLORS] ?? "bg-mhs-border text-mhs-muted"}`}>
                       {d.status}
                     </span>
                   </td>

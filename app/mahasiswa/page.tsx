@@ -1,4 +1,59 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
+
+function MiniCalendar() {
+  const [date, setDate] = useState(new Date(2026, 3, 1)); // April 2026
+
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const today = new Date();
+
+  const MONTHS_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  // Deadline dots from seed data (static)
+  const DEADLINE_DAYS = new Set([24, 26, 28]); // mhs-3, mhs-5, mhs-1
+
+  const cells: { day: number; curr: boolean }[] = [];
+  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, curr: false });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, curr: true });
+  while (cells.length % 7 !== 0) cells.push({ day: cells.length - daysInMonth - firstDay + 1, curr: false });
+
+  const isToday = (d: number) => d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+  return (
+    <div className="bg-mhs-card border border-mhs-border rounded-[14px] p-5">
+      <div className="flex items-center mb-3">
+        <h3 className="text-[14px] font-semibold flex-1 text-mhs-text">📅 {MONTHS_ID[month]} {year}</h3>
+        <button onClick={() => setDate(new Date(year, month - 1, 1))} className="text-mhs-muted hover:text-mhs-text px-1.5 text-[16px]">‹</button>
+        <button onClick={() => setDate(new Date(year, month + 1, 1))} className="text-mhs-muted hover:text-mhs-text px-1.5 text-[16px]">›</button>
+      </div>
+      <div className="grid grid-cols-7 gap-0.5 text-center">
+        {["MIN","SEN","SEL","RAB","KAM","JUM","SAB"].map(d => (
+          <div key={d} className="text-[10px] text-mhs-muted py-1 font-semibold">{d}</div>
+        ))}
+        {cells.map((c, i) => (
+          <div key={i} className={`text-[12px] py-1.5 rounded-md relative select-none ${
+            !c.curr ? "text-mhs-muted/30" :
+            isToday(c.day) ? "text-mhs-on bg-mhs-amber font-bold" :
+            "text-mhs-text hover:bg-mhs-border cursor-pointer"
+          }`}>
+            {c.day}
+            {c.curr && DEADLINE_DAYS.has(c.day) && !isToday(c.day) && (
+              <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-1 h-1 bg-mhs-rose rounded-full" />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function MahasiswaDashboard() {
   return (
@@ -58,7 +113,7 @@ export default function MahasiswaDashboard() {
           <div className="bg-mhs-card border border-mhs-border rounded-[14px] p-5.5">
             <div className="flex items-center mb-4.5 px-1">
               <h3 className="text-[14px] font-semibold flex-1 text-mhs-text">📋 Tugas Minggu Ini</h3>
-              <a href="#" className="text-[12px] text-mhs-amber hover:underline cursor-pointer">Lihat semua →</a>
+              <Link href="/mahasiswa/tugas" className="text-[12px] text-mhs-amber hover:underline cursor-pointer">Lihat semua →</Link>
             </div>
 
             <div className="space-y-1">
@@ -119,7 +174,7 @@ export default function MahasiswaDashboard() {
           <div className="bg-mhs-card border border-mhs-border rounded-[14px] p-5.5">
             <div className="flex items-center mb-4.5 px-1">
               <h3 className="text-[14px] font-semibold flex-1 text-mhs-text">🚀 Progres Proyek</h3>
-              <a href="#" className="text-[12px] text-mhs-amber hover:underline cursor-pointer">Detail →</a>
+              <Link href="/mahasiswa/proyek" className="text-[12px] text-mhs-amber hover:underline cursor-pointer">Detail →</Link>
             </div>
 
             <div className="space-y-4.5">
@@ -169,35 +224,7 @@ export default function MahasiswaDashboard() {
         {/* RIGHT COLUMN */}
         <div className="space-y-4">
           
-          {/* MINI CALENDAR (Placeholder) */}
-          <div className="bg-mhs-card border border-mhs-border rounded-[14px] p-5.5">
-            <div className="flex items-center mb-3">
-              <h3 className="text-[14px] font-semibold flex-1 text-mhs-text">📅 April 2025</h3>
-              <button className="text-mhs-muted hover:text-mhs-text px-1.5">‹</button>
-              <button className="text-mhs-muted hover:text-mhs-text px-1.5">›</button>
-            </div>
-            <div className="grid grid-cols-7 gap-0.5 text-center">
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">MIN</div>
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">SEN</div>
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">SEL</div>
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">RAB</div>
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">KAM</div>
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">JUM</div>
-              <div className="text-[10px] text-mhs-muted py-1 font-semibold">SAB</div>
-              
-              <div className="text-[12px] py-1.5 text-mhs-muted/30">30</div>
-              <div className="text-[12px] py-1.5 text-mhs-muted/30">31</div>
-              <div className="text-[12px] py-1.5 text-mhs-muted hover:bg-mhs-border rounded-md cursor-pointer">1</div>
-              <div className="text-[12px] py-1.5 text-mhs-muted hover:bg-mhs-border rounded-md cursor-pointer">2</div>
-              <div className="text-[12px] py-1.5 text-mhs-muted hover:bg-mhs-border rounded-md cursor-pointer">3</div>
-              <div className="text-[12px] py-1.5 text-mhs-muted hover:bg-mhs-border rounded-md cursor-pointer">4</div>
-              <div className="text-[12px] py-1.5 text-mhs-on bg-mhs-amber font-bold rounded-md cursor-pointer relative">5</div>
-              <div className="text-[12px] py-1.5 text-mhs-text relative hover:bg-mhs-border rounded-md cursor-pointer">6<div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-1 h-1 bg-mhs-rose rounded-full"></div></div>
-              <div className="text-[12px] py-1.5 text-mhs-muted hover:bg-mhs-border rounded-md cursor-pointer">7</div>
-              <div className="text-[12px] py-1.5 text-mhs-text relative hover:bg-mhs-border rounded-md cursor-pointer">8<div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-1 h-1 bg-mhs-rose rounded-full"></div></div>
-              <div className="text-[12px] py-1.5 text-mhs-text relative hover:bg-mhs-border rounded-md cursor-pointer">9<div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-1 h-1 bg-mhs-rose rounded-full"></div></div>
-            </div>
-          </div>
+          <MiniCalendar />
 
           {/* UPCOMING DEADLINES */}
           <div className="bg-mhs-card border border-mhs-border rounded-[14px] p-5.5">

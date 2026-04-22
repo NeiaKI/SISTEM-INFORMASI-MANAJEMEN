@@ -251,36 +251,42 @@ html.light {
   --border-rgb: 221 216 204;
   --shadow:   rgba(26,26,20,.08);
 
-  --mhs-bg:        #f4f7fb;
-  --mhs-bg-rgb:    244 247 251;
-  --mhs-surface:   #ffffff;
-  --mhs-surface-rgb: 255 255 255;
-  --mhs-card:      #edf2f8;
-  --mhs-card-rgb:  237 242 248;
-  --mhs-border:    #d7e0eb;
-  --mhs-border-rgb: 215 224 235;
-  --mhs-amber:     #d97706;
-  --mhs-amber-rgb: 217 119 6;
-  --mhs-amber-2:   #f59e0b;
-  --mhs-amber-2-rgb: 245 158 11;
-  --mhs-teal:      #0284c7;
-  --mhs-teal-rgb:  2 132 199;
-  --mhs-rose:      #e11d48;
-  --mhs-rose-rgb:  225 29 72;
-  --mhs-green:     #15803d;
-  --mhs-green-rgb: 21 128 61;
-  --mhs-purple:    #7c3aed;
-  --mhs-purple-rgb: 124 58 237;
-  --mhs-text:      #142033;
-  --mhs-text-rgb:  20 32 51;
-  --mhs-muted:     #667085;
-  --mhs-muted-rgb: 102 112 133;
-  --mhs-danger:    #e11d48;
-  --mhs-danger-rgb: 225 29 72;
-  --mhs-hover:     rgba(15, 23, 42, 0.05);
-  --mhs-hover-rgb: 15 23 42;
-  --mhs-on-accent: #0f172a;
-  --mhs-on-accent-rgb: 15 23 42;
+  --mhs-bg:            #e4edf7;       /* was #f4f7fb — more distinct from white surface */
+  --mhs-bg-rgb:        228 237 247;
+  --mhs-surface:       #ffffff;
+  --mhs-surface-rgb:   255 255 255;
+  --mhs-card:          #f1f7fd;       /* was #edf2f8 — lighter so it reads elevated inside surfaces */
+  --mhs-card-rgb:      241 247 253;
+  --mhs-border:        #beccdf;       /* was #d7e0eb — more visible */
+  --mhs-border-rgb:    190 204 223;
+
+  /* Accent colors: 700 shades so text passes WCAG AA on their own tinted badge backgrounds */
+  --mhs-amber:         #b45309;       /* was #d97706 amber-600 → amber-700, 5.7:1 on badge bg */
+  --mhs-amber-rgb:     180 83 9;
+  --mhs-amber-2:       #d97706;       /* amber-600 kept for gradient endpoints */
+  --mhs-amber-2-rgb:   217 119 6;
+  --mhs-teal:          #0369a1;       /* was #0284c7 sky-600 → sky-700, 6.5:1 on badge bg */
+  --mhs-teal-rgb:      3 105 161;
+  --mhs-rose:          #be123c;       /* was #e11d48 rose-600 → rose-700, 6.3:1 on badge bg */
+  --mhs-rose-rgb:      190 18 60;
+  --mhs-green:         #166534;       /* was #15803d green-700 → green-800 */
+  --mhs-green-rgb:     22 101 52;
+  --mhs-purple:        #6d28d9;       /* was #7c3aed violet-600 → violet-700, 7.1:1 on badge bg */
+  --mhs-purple-rgb:    109 40 217;
+
+  /* Text */
+  --mhs-text:          #0c1829;       /* was #142033 — slightly deeper */
+  --mhs-text-rgb:      12 24 41;
+  --mhs-muted:         #4a5568;       /* was #667085 — slate-600, 6.7:1 on bg, 7.7:1 on surface */
+  --mhs-muted-rgb:     74 85 104;
+  --mhs-danger:        #be123c;
+  --mhs-danger-rgb:    190 18 60;
+
+  /* Interaction — hover-rgb is used by Tailwind at opacity:1, so must be a valid hover bg */
+  --mhs-hover:         rgba(12, 24, 41, 0.06);
+  --mhs-hover-rgb:     218 231 245;   /* was "15 23 42" which rendered as solid navy — now a light blue */
+  --mhs-on-accent:     #ffffff;       /* was #0f172a — white text on amber-700 button (7:1 ratio) */
+  --mhs-on-accent-rgb: 255 255 255;
 }
 
 html.dark {
@@ -342,8 +348,8 @@ html.dark {
   --mhs-muted-rgb: 122 130 153;
   --mhs-danger:    #f43f5e;
   --mhs-danger-rgb: 244 63 94;
-  --mhs-hover:     rgba(255, 255, 255, 0.05);
-  --mhs-hover-rgb: 255 255 255;
+  --mhs-hover:     rgba(255, 255, 255, 0.06);
+  --mhs-hover-rgb: 30 37 54;          /* was "255 255 255" which rendered solid white — now a lighter dark */
   --mhs-on-accent: #111827;
   --mhs-on-accent-rgb: 17 24 39;
 }

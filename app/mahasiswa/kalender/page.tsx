@@ -8,14 +8,13 @@ const data = createSeedData().mahasiswa;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const DOWS = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
 
-function getDeadlineDays(year, month) {
-  const days = {};
+function getDeadlineDays(year: number, month: number): Record<number, { diff: number; task: (typeof data.tasks)[0] }> {
+  const days: Record<number, { diff: number; task: (typeof data.tasks)[0] }> = {};
   data.tasks.forEach(task => {
     const d = new Date(task.deadline);
     if (d.getFullYear() === year && d.getMonth() === month) {
       const day = d.getDate();
-      const today = new Date();
-      const diff = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+      const diff = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       if (!days[day] || diff < days[day].diff) {
         days[day] = { diff, task };
       }
@@ -24,7 +23,7 @@ function getDeadlineDays(year, month) {
   return days;
 }
 
-function getDayClass(day, deadlines, today, year, month) {
+function getDayClass(day: number, deadlines: ReturnType<typeof getDeadlineDays>, today: Date, year: number, month: number) {
   const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
   if (isToday) return "bg-mhs-amber text-mhs-on font-bold";
   const dl = deadlines[day];
@@ -34,7 +33,7 @@ function getDayClass(day, deadlines, today, year, month) {
   return "text-mhs-text";
 }
 
-function getDotClass(diff) {
+function getDotClass(diff: number) {
   if (diff <= 3) return "bg-mhs-rose";
   if (diff <= 7) return "bg-mhs-amber";
   return "bg-mhs-teal";
@@ -53,7 +52,7 @@ export default function KalenderPage() {
   const monthDeadlines = data.tasks.filter(t => {
     const d = new Date(t.deadline);
     return d.getFullYear() === year && d.getMonth() === month;
-  }).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+  }).sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
 
   function prevMonth() {
     if (month === 0) { setYear(y => y - 1); setMonth(11); }
@@ -145,7 +144,7 @@ export default function KalenderPage() {
             <div className="space-y-2.5">
               {monthDeadlines.map(task => {
                 const d = new Date(task.deadline);
-                const diff = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+                const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                 const isUrgent = diff <= 3;
                 return (
                   <div key={task.id} className="flex items-start gap-2.5 pb-2.5 border-b border-mhs-border/50 last:border-0 last:pb-0">

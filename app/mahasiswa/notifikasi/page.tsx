@@ -51,7 +51,7 @@ export default function NotifikasiPage() {
       {/* NOTIFICATION LIST */}
       <div className="bg-mhs-card border border-mhs-border rounded-[14px] max-w-2xl">
         {data.notifications.map((notif, i) => {
-          const cfg = KIND_CONFIG[notif.kind] || KIND_CONFIG.info;
+          const cfg = KIND_CONFIG[notif.kind as keyof typeof KIND_CONFIG] ?? KIND_CONFIG.info;
           const isLast = i === data.notifications.length - 1;
           return (
             <div
@@ -71,7 +71,7 @@ export default function NotifikasiPage() {
                 <div className="text-[12px] text-mhs-muted mt-0.5 leading-relaxed">{notif.message}</div>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-[11px] text-mhs-muted">
-                    {CHANNEL_ICON[notif.channel] || "📢"} {notif.channel}
+                    {CHANNEL_ICON[notif.channel as keyof typeof CHANNEL_ICON] ?? "📢"} {notif.channel}
                   </span>
                   <span className="w-1 h-1 rounded-full bg-mhs-muted/40" />
                   <span className="text-[11px] text-mhs-muted">{notif.time}</span>
