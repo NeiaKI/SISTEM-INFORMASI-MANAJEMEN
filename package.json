@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start"
   },
@@ -13,13 +13,14 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@tailwindcss/postcss": "^4.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
-    "next": "14.2.15",
+    "next": "^15.3.9",
     "next-themes": "^0.4.6",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
@@ -27,8 +28,9 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "10.4.20",
+    "babel-plugin-react-compiler": "^1.0.0",
     "postcss": "8.4.49",
-    "tailwindcss": "3.4.14",
+    "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3"
   }
 }

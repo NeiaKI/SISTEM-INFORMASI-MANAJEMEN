@@ -2,18 +2,90 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Globe, Eye, EyeOff, Mail, KeyRound } from "lucide-react";
+import { Globe, Eye, EyeOff, Mail, KeyRound, X, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type ForgotStep = "input" | "otp" | "reset" | "success";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loginMode, setLoginMode] = useState("nim"); // nim | email
-  const [role, setRole] = useState("mahasiswa"); // mahasiswa | dosen
+  const [loginMode, setLoginMode] = useState("nim");
+  const [role, setRole] = useState("mahasiswa");
   const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(false);
+
+  // Forgot password state
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotStep, setForgotStep] = useState<ForgotStep>("input");
+  const [forgotIdentifier, setForgotIdentifier] = useState("");
+  const [forgotIdentifierError, setForgotIdentifierError] = useState("");
+  const [otpValue, setOtpValue] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const openForgot = () => {
+    setForgotStep("input");
+    setForgotIdentifier("");
+    setForgotIdentifierError("");
+    setOtpValue("");
+    setOtpError("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setResetError("");
+    setLoading(false);
+    setForgotOpen(true);
+  };
+
+  const closeForgot = () => setForgotOpen(false);
+
+  const handleSendOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotIdentifier.trim()) {
+      setForgotIdentifierError("Email atau NIM/NIDN tidak boleh kosong.");
+      return;
+    }
+    setForgotIdentifierError("");
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setForgotStep("otp");
+    }, 1400);
+  };
+
+  const handleVerifyOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpValue !== "123456") {
+      setOtpError("Kode OTP salah. Gunakan kode: 123456 (demo).");
+      return;
+    }
+    setOtpError("");
+    setForgotStep("reset");
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      setResetError("Password minimal 8 karakter.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetError("Konfirmasi password tidak cocok.");
+      return;
+    }
+    setResetError("");
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setForgotStep("success");
+    }, 1200);
+  };
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,6 +109,7 @@ export default function LoginPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-['Inter',sans-serif]">
       {/* Left Column: Image Area */}
       <div className="relative hidden md:flex flex-col justify-end p-12 overflow-hidden bg-[#2563eb]">
@@ -161,9 +234,13 @@ export default function LoginPage() {
             </div>
 
             <div className="pt-2 flex justify-start">
-              <Link href="#" className="text-blue-500 hover:text-blue-400 text-[13px] font-medium transition-colors">
+              <button
+                type="button"
+                onClick={openForgot}
+                className="text-blue-500 hover:text-blue-400 text-[13px] font-medium transition-colors"
+              >
                 Lupa password?
-              </Link>
+              </button>
             </div>
 
             <button
@@ -207,5 +284,218 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+
+    {/* ── Forgot Password Modal ─────────────────── */}
+    {forgotOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+      >
+        <div className="w-full max-w-[420px] bg-[#1e293b] border border-[#334155] rounded-2xl shadow-2xl overflow-hidden">
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#334155]">
+            <div className="flex items-center gap-3">
+              {forgotStep !== "input" && forgotStep !== "success" && (
+                <button
+                  type="button"
+                  onClick={() => setForgotStep(forgotStep === "otp" ? "input" : "otp")}
+                  className="text-[#94a3b8] hover:text-white transition-colors"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+              <div>
+                <h3 className="text-white font-semibold text-[15px]">
+                  {forgotStep === "input" && "Reset Password"}
+                  {forgotStep === "otp" && "Verifikasi OTP"}
+                  {forgotStep === "reset" && "Buat Password Baru"}
+                  {forgotStep === "success" && "Berhasil!"}
+                </h3>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {(["input","otp","reset"] as ForgotStep[]).map((s, i) => (
+                    <div
+                      key={s}
+                      className={cn(
+                        "h-1 rounded-full transition-all duration-300",
+                        forgotStep === "success"
+                          ? "w-8 bg-emerald-500"
+                          : i <= ["input","otp","reset"].indexOf(forgotStep)
+                            ? "w-8 bg-blue-500"
+                            : "w-4 bg-[#334155]"
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={closeForgot}
+              className="text-[#64748b] hover:text-white transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="px-6 py-6">
+
+            {/* Step 1: Input identifier */}
+            {forgotStep === "input" && (
+              <form onSubmit={handleSendOTP} className="space-y-5">
+                <p className="text-[#94a3b8] text-[13px] leading-relaxed">
+                  Masukkan email kampus atau NIM/NIDN Anda. Kode OTP akan dikirim ke email terdaftar.
+                </p>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#e2e8f0]">Email / NIM / NIDN</label>
+                  <input
+                    type="text"
+                    value={forgotIdentifier}
+                    onChange={(e) => { setForgotIdentifier(e.target.value); setForgotIdentifierError(""); }}
+                    placeholder="email@unpam.ac.id atau NIM/NIDN"
+                    className={cn(
+                      "w-full bg-[#334155]/50 border text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 transition-colors placeholder:text-[#64748b]",
+                      forgotIdentifierError
+                        ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/30"
+                        : "border-[#475569] focus:border-blue-500 focus:ring-blue-500"
+                    )}
+                    autoFocus
+                  />
+                  {forgotIdentifierError && (
+                    <p className="text-red-400 text-[12px]">{forgotIdentifierError}</p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Mengirim...</> : "Kirim Kode OTP"}
+                </button>
+              </form>
+            )}
+
+            {/* Step 2: OTP */}
+            {forgotStep === "otp" && (
+              <form onSubmit={handleVerifyOTP} className="space-y-5">
+                <p className="text-[#94a3b8] text-[13px] leading-relaxed">
+                  Kode OTP 6 digit telah dikirim ke email yang terdaftar untuk{" "}
+                  <span className="text-white font-medium">{forgotIdentifier}</span>.
+                </p>
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-2.5 text-[12px] text-blue-400">
+                  Demo: gunakan kode <span className="font-bold tracking-widest">123456</span>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#e2e8f0]">Kode OTP</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpValue}
+                    onChange={(e) => { setOtpValue(e.target.value.replace(/\D/g, "")); setOtpError(""); }}
+                    placeholder="______"
+                    className={cn(
+                      "w-full bg-[#334155]/50 border text-white rounded-lg px-4 py-3 text-sm text-center tracking-[0.5em] font-mono focus:outline-none focus:ring-1 transition-colors placeholder:text-[#64748b] placeholder:tracking-normal",
+                      otpError
+                        ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/30"
+                        : "border-[#475569] focus:border-blue-500 focus:ring-blue-500"
+                    )}
+                    autoFocus
+                  />
+                  {otpError && <p className="text-red-400 text-[12px]">{otpError}</p>}
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-colors"
+                  >
+                    Verifikasi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotStep("input"); setOtpValue(""); setOtpError(""); }}
+                    className="text-[#64748b] hover:text-[#94a3b8] text-[13px] transition-colors"
+                  >
+                    Tidak menerima kode? Kirim ulang
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 3: New password */}
+            {forgotStep === "reset" && (
+              <form onSubmit={handleResetPassword} className="space-y-5">
+                <p className="text-[#94a3b8] text-[13px] leading-relaxed">
+                  Buat password baru untuk akun Anda.
+                </p>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#e2e8f0]">Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPw ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => { setNewPassword(e.target.value); setResetError(""); }}
+                      placeholder="Min. 8 karakter"
+                      className="w-full bg-[#334155]/50 border border-[#475569] text-white rounded-lg pl-4 pr-10 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-[#64748b]"
+                      autoFocus
+                    />
+                    <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-white transition-colors">
+                      {showNewPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#e2e8f0]">Konfirmasi Password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPw ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setResetError(""); }}
+                      placeholder="Ulangi password baru"
+                      className="w-full bg-[#334155]/50 border border-[#475569] text-white rounded-lg pl-4 pr-10 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-[#64748b]"
+                    />
+                    <button type="button" onClick={() => setShowConfirmPw(!showConfirmPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-white transition-colors">
+                      {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                {resetError && <p className="text-red-400 text-[12px]">{resetError}</p>}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Menyimpan...</> : "Simpan Password Baru"}
+                </button>
+              </form>
+            )}
+
+            {/* Step 4: Success */}
+            {forgotStep === "success" && (
+              <div className="text-center space-y-5 py-2">
+                <div className="flex justify-center">
+                  <CheckCircle2 size={56} className="text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-[16px]">Password Berhasil Direset!</p>
+                  <p className="text-[#94a3b8] text-[13px] mt-1.5">
+                    Silakan login menggunakan password baru Anda.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeForgot}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-colors"
+                >
+                  Kembali ke Login
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

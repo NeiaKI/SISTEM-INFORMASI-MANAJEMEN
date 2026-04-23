@@ -83,6 +83,7 @@ export default function DosenTugasPage() {
       progress: 0,
       note: createForm.description,
       submissions: [],
+      comments: [],
     };
     const updated = [newTask, ...allTasks];
     setAllTasks(updated);

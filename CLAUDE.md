@@ -14,11 +14,11 @@ No lint or test tooling is configured yet.
 
 ## Architecture
 
-**Frontend-only prototype** — Next.js 14 App Router, JavaScript/JSX, Tailwind CSS, shadcn/ui (Radix UI), no backend or database.
+**Frontend-only prototype** — Next.js 15 App Router, TypeScript/TSX, Tailwind CSS v4, shadcn/ui (Radix UI), React 19, no backend or database.
 
 ### Key directories
 
-- `app/` — Next.js App Router pages: `auth/login/`, `mahasiswa/` (student dashboard), `dosen/` (lecturer dashboard), root `page.js` (landing)
+- `app/` — Next.js App Router pages: `auth/login/`, `mahasiswa/` (student dashboard), `dosen/` (lecturer dashboard), root `page.tsx` (landing)
 - `components/ui/` — shadcn/ui primitives (Button, Badge, Card, Dialog, Select, Tabs, Checkbox, Input)
 - `data/sim-data.js` — All mock data and configuration constants (`AUTH_MODES`, `SECTION_OPTIONS`, `ACCESS_ROWS`, system settings)
 - `lib/utils.js` — `cn()` helper (clsx + tailwind-merge)
@@ -33,11 +33,11 @@ Login at `/auth/login` selects the role and routes accordingly. All state is loc
 
 ### Theming
 
-`tailwind.config.js` defines an extensive dual-palette custom theme. `components/theme-provider.jsx` wraps `next-themes` for light/dark mode. `components.json` configures shadcn/ui (baseColor: slate, cssVariables enabled).
+Tailwind v4 uses CSS-first config in `app/globals.css` (`@theme inline { ... }`), no `tailwind.config.js`. `components/theme-provider.jsx` wraps `next-themes` for light/dark mode. `components.json` configures shadcn/ui (baseColor: slate, cssVariables enabled).
 
 ### Path alias
 
-`@/*` maps to the project root (configured in `jsconfig.json`).
+`@/*` maps to the project root (configured in `tsconfig.json`).
 
 ## Product context
 
