@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { X, CheckCircle } from "lucide-react";
 import { createSeedData } from "@/data/sim-data";
+import { useSearch } from "@/lib/search-context";
 
 const seedData = createSeedData().dosen;
 
-type Task = (typeof seedData.tasks)[0] & { note?: string };
+type Task = (typeof seedData.tasks)[0] & { note?: string; createdAt?: string; closed?: boolean };
 
 const MK_COLORS = [
   "bg-forest/10 text-forest",
@@ -21,11 +22,17 @@ function mkColor(course: string) {
 }
 
 const STATUS_MAP = {
-  "selesai":           { cls: "bg-forest/10 text-forest",    label: "Selesai"    },
-  "sedang dikerjakan": { cls: "bg-teal/10 text-teal",        label: "Berjalan"   },
-  "menunggu review":   { cls: "bg-gold/15 text-gold",        label: "Menunggu"   },
-  "belum mulai":       { cls: "bg-muted/10 text-muted",      label: "Baru Dibuka"},
+  "baru dibuka": { cls: "bg-teal/10 text-teal",    label: "Baru Dibuka", desc: "Tugas diterbitkan kurang dari 24 jam yang lalu"  },
+  "berjalan":    { cls: "bg-gold/15 text-gold",    label: "Berjalan",    desc: "Tugas aktif dan terbuka untuk pengumpulan"       },
+  "selesai":     { cls: "bg-forest/10 text-forest", label: "Selesai",    desc: "Tugas sudah ditutup oleh dosen"                  },
 };
+
+function getTaskStatus(task: Task): keyof typeof STATUS_MAP {
+  if (task.closed || task.status === "selesai") return "selesai";
+  if (!task.createdAt) return "berjalan";
+  const hoursSince = (Date.now() - new Date(task.createdAt).getTime()) / 3_600_000;
+  return hoursSince < 24 ? "baru dibuka" : "berjalan";
+}
 
 const PROGRESS_BAR = [
   "bg-gradient-to-r from-forest to-forest-2",
@@ -50,6 +57,7 @@ function deadlineCls(d: string) {
 }
 
 export default function DosenTugasPage() {
+  const topbarQ = useSearch();
   const [filter, setFilter]       = useState("semua");
   const [allTasks, setAllTasks]   = useState<Task[]>(seedData.tasks);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -82,6 +90,7 @@ export default function DosenTugasPage() {
       priority: "sedang",
       progress: 0,
       note: createForm.description,
+      createdAt: new Date().toISOString(),
       submissions: [],
       comments: [],
     };
@@ -125,20 +134,33 @@ export default function DosenTugasPage() {
     setConfirmDelete(null);
   }
 
+  function handleClose(id: string) {
+    const updated = allTasks.map(t => t.id === id ? { ...t, closed: true } : t);
+    setAllTasks(updated);
+    syncLocalStorage(updated);
+  }
+
+  function handleReopen(id: string) {
+    const updated = allTasks.map(t => t.id === id ? { ...t, closed: false, status: "sedang dikerjakan" } : t);
+    setAllTasks(updated);
+    syncLocalStorage(updated);
+  }
+
   const data = { ...seedData, tasks: allTasks };
 
   const filtered = data.tasks.filter(t => {
-    if (filter === "aktif")   return t.status !== "selesai";
-    if (filter === "selesai") return t.status === "selesai";
-    if (filter === "review")  return t.status === "menunggu review";
-    return true;
+    const st = getTaskStatus(t);
+    const matchFilter =
+      filter === "aktif"   ? st !== "selesai" :
+      filter === "selesai" ? st === "selesai" : true;
+    const matchQ = !topbarQ || t.title.toLowerCase().includes(topbarQ.toLowerCase()) || t.course.toLowerCase().includes(topbarQ.toLowerCase());
+    return matchFilter && matchQ;
   });
 
   const tabs = [
     { id: "semua",   label: `Semua (${data.tasks.length})` },
-    { id: "aktif",   label: `Aktif (${data.tasks.filter(t => t.status !== "selesai").length})` },
-    { id: "review",  label: `Menunggu Review (${data.tasks.filter(t => t.status === "menunggu review").length})` },
-    { id: "selesai", label: `Selesai (${data.tasks.filter(t => t.status === "selesai").length})` },
+    { id: "aktif",   label: `Aktif (${data.tasks.filter(t => getTaskStatus(t) !== "selesai").length})` },
+    { id: "selesai", label: `Selesai (${data.tasks.filter(t => getTaskStatus(t) === "selesai").length})` },
   ];
 
   const modalInputCls = "w-full bg-cream border border-border text-ink rounded-lg px-3 py-2 text-[13px] outline-none focus:border-forest transition-colors";
@@ -291,12 +313,11 @@ export default function DosenTugasPage() {
       </div>
 
       {/* STAT MINI ROW */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total Tugas", val: data.tasks.length,                                                 icon: "📋", accent: "text-forest", bg: "bg-forest/8" },
-          { label: "Aktif",       val: data.tasks.filter(t => t.status !== "selesai").length,             icon: "⚡", accent: "text-teal",   bg: "bg-teal/8"   },
-          { label: "Butuh Review",val: data.tasks.filter(t => t.status === "menunggu review").length,     icon: "🔍", accent: "text-gold",   bg: "bg-gold/8"   },
-          { label: "Selesai",     val: data.tasks.filter(t => t.status === "selesai").length,             icon: "✅", accent: "text-rose",   bg: "bg-rose/8"   },
+          { label: "Total Tugas", val: data.tasks.length,                                                      icon: "📋", accent: "text-forest", bg: "bg-forest/8" },
+          { label: "Aktif",       val: data.tasks.filter(t => getTaskStatus(t) !== "selesai").length,          icon: "⚡", accent: "text-gold",   bg: "bg-gold/8"   },
+          { label: "Selesai",     val: data.tasks.filter(t => getTaskStatus(t) === "selesai").length,          icon: "✅", accent: "text-teal",   bg: "bg-teal/8"   },
         ].map((s, i) => (
           <div key={i} className={`${s.bg} border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3`}>
             <span className="text-[22px]">{s.icon}</span>
@@ -323,27 +344,50 @@ export default function DosenTugasPage() {
         ))}
       </div>
 
+      {/* Status legend */}
+      <div className="flex items-start gap-3 flex-wrap bg-cream border border-border/60 rounded-xl px-4 py-3">
+        <span className="text-[10px] font-semibold text-muted uppercase tracking-wider mt-0.5 shrink-0">Keterangan Status:</span>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {Object.values(STATUS_MAP).map(s => (
+            <div key={s.label} className="flex items-center gap-2">
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${s.cls}`}>{s.label}</span>
+              <span className="text-[11px] text-muted">{s.desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* TABLE */}
       <div className="bg-paper border-[1.5px] border-border rounded-[14px] shadow-[0_1px_6px_rgba(26,26,20,0.06)] overflow-hidden">
         <table className="w-full text-[13px] border-collapse">
           <thead>
             <tr>
-              {["Judul Tugas","Mata Kuliah","Jenis","Deadline","Pengumpulan","Status","Aksi"].map(h => (
-                <th key={h} className="text-left py-2.5 px-4 text-[11px] font-semibold text-muted uppercase tracking-[0.06em] bg-cream border-b-[1.5px] border-border">
+              {["Judul Tugas","Mata Kuliah","Jenis","Deadline","Pengumpulan"].map(h => (
+                <th key={h} className="text-left py-2.5 px-4 text-[11px] font-semibold text-muted uppercase tracking-[0.06em] bg-cream border-b-[1.5px] border-border whitespace-nowrap">
                   {h}
                 </th>
               ))}
+              <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-muted uppercase tracking-[0.06em] bg-cream border-b-[1.5px] border-border whitespace-nowrap">
+                <span className="flex items-center gap-1">
+                  Status
+                  <span className="text-[9px] text-muted/50 font-normal normal-case tracking-normal">(lihat keterangan ↑)</span>
+                </span>
+              </th>
+              <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-muted uppercase tracking-[0.06em] bg-cream border-b-[1.5px] border-border whitespace-nowrap">
+                Aksi
+              </th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((task, idx) => {
-              const st = STATUS_MAP[task.status as keyof typeof STATUS_MAP] ?? { cls: "bg-muted/10 text-muted", label: task.status };
+              const statusKey = getTaskStatus(task);
+              const st = STATUS_MAP[statusKey];
               const submitted = task.submissions?.length ?? 0;
               const total = 36 + (idx * 4 % 10);
               const pct = Math.round((submitted / total) * 100);
               const barCls = PROGRESS_BAR[idx % PROGRESS_BAR.length];
               return (
-                <tr key={task.id} className={`border-b border-border/50 last:border-0 hover:bg-forest/[0.03] transition-colors ${task.status === "selesai" ? "opacity-60" : ""}`}>
+                <tr key={task.id} className={`border-b border-border/50 last:border-0 hover:bg-forest/[0.03] transition-colors ${statusKey === "selesai" ? "opacity-60" : ""}`}>
                   <td className="py-3.5 px-4">
                     <div className="font-semibold text-ink">{task.title}</div>
                     <div className="text-[11px] text-muted mt-0.5">Deadline {formatDate(task.deadline)}</div>
@@ -367,7 +411,22 @@ export default function DosenTugasPage() {
                     <span className={`text-[10.5px] font-semibold px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
                   </td>
                   <td className="py-3.5 px-4">
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-wrap">
+                      {statusKey !== "selesai" ? (
+                        <button
+                          onClick={() => handleClose(task.id)}
+                          className="bg-paper text-forest border-[1.5px] border-forest/30 hover:bg-forest/5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap"
+                        >
+                          Tutup
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleReopen(task.id)}
+                          className="bg-paper text-teal border-[1.5px] border-teal/30 hover:bg-teal/5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap"
+                        >
+                          Buka Kembali
+                        </button>
+                      )}
                       <button
                         onClick={() => openEdit(task)}
                         className="bg-paper text-ink-2 border-[1.5px] border-border hover:border-forest hover:text-forest px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"

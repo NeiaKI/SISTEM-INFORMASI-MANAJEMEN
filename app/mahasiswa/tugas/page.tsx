@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { MessageSquare, Paperclip, X, Send, Upload, CheckCircle2 } from "lucide-react";
-import { createSeedData, type SeedData } from "@/data/sim-data";
-import { getTaskData, addSubmission, addComment, getAllTaskData, type TaskEntry } from "@/lib/taskStore";
-
-type MhsTask = SeedData["mahasiswa"]["tasks"][0];
+import { useState, useEffect } from "react";
+import { useSearch } from "@/lib/search-context";
+import { MessageSquare, Paperclip } from "lucide-react";
+import { createSeedData } from "@/data/sim-data";
+import { getAllTaskData, type TaskEntry } from "@/lib/taskStore";
+import { TaskDetailPanel, type MhsTask, mkColor, deadlineInfo, formatDate } from "@/components/task-detail-panel";
 
 const allData = createSeedData().mahasiswa;
 
@@ -28,31 +28,6 @@ const PRIORITY_LABEL = {
   sedang:  { cls: "bg-mhs-amber/15 text-mhs-amber",  label: "Sedang"  },
   rendah:  { cls: "bg-mhs-green/15 text-mhs-green",  label: "Rendah"  },
 };
-const MK_COLORS = [
-  "bg-[#e11d48]/10 text-[#e11d48]",
-  "bg-[#0284c7]/10 text-[#0284c7]",
-  "bg-[#7c3aed]/10 text-[#7c3aed]",
-  "bg-[#d97706]/10 text-[#d97706]",
-  "bg-[#15803d]/10 text-[#15803d]",
-  "bg-[#0891b2]/10 text-[#0891b2]",
-];
-function mkColor(course: string) {
-  const idx = [...course].reduce((a, c) => a + c.charCodeAt(0), 0) % MK_COLORS.length;
-  return MK_COLORS[idx];
-}
-function deadlineInfo(dateStr: string, isSelesai = false) {
-  if (isSelesai) return { label: "Selesai", cls: "bg-mhs-green/15 text-mhs-green" };
-  const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
-  if (diff < 0)  return { label: `${Math.abs(diff)} hari telat`, cls: "bg-mhs-rose/15 text-mhs-rose" };
-  if (diff === 0) return { label: "Hari ini",                    cls: "bg-mhs-rose/15 text-mhs-rose" };
-  if (diff <= 3) return { label: `H-${diff}`,                    cls: "bg-mhs-rose/15 text-mhs-rose" };
-  if (diff <= 7) return { label: `H-${diff}`,                    cls: "bg-mhs-amber/15 text-mhs-amber" };
-  return              { label: `H-${diff}`,                      cls: "bg-mhs-teal/10 text-mhs-teal" };
-}
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
-}
-
 /* ── Kanban column config ────────────────────── */
 const COLUMNS = [
   { id: "belum mulai",       label: "Belum Mulai", dot: "bg-mhs-muted",   headBg: "bg-mhs-muted/8",   headBorder: "border-mhs-muted/20",   countCls: "bg-mhs-muted/15 text-mhs-muted"   },
@@ -129,322 +104,6 @@ function TaskCard({ task, localData, onOpen }: { task: MhsTask; localData: TaskE
         </div>
       </div>
     </div>
-  );
-}
-
-/* ── Task Detail Panel ───────────────────────── */
-function TaskDetailPanel({ task, localData, onClose, onSubmitted, onCommented }: {
-  task: MhsTask;
-  localData: TaskEntry | undefined;
-  onClose: () => void;
-  onSubmitted: (taskId?: string) => void;
-  onCommented: (taskId?: string) => void;
-}) {
-  const [tab, setTab] = useState("submit");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [submitNote, setSubmitNote] = useState("");
-  const [submitDone, setSubmitDone] = useState(false);
-  const [commentText, setCommentText] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const commentsEndRef = useRef<HTMLDivElement>(null);
-
-  const dl = deadlineInfo(task.deadline, task.status === "selesai");
-  const allSubs     = [...(task.submissions || []), ...(localData?.submissions || [])];
-  const allComments = [...(task.comments || []),    ...(localData?.comments || [])];
-
-  useEffect(() => {
-    setSubmitDone(false);
-    setSelectedFile(null);
-    setSubmitNote("");
-    setCommentText("");
-    setTab("submit");
-  }, [task.id]);
-
-  useEffect(() => {
-    if (tab === "comment") commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [tab, allComments.length]);
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) setSelectedFile(file);
-  }
-
-  function handleSubmit() {
-    if (!selectedFile) return;
-    addSubmission(task.id, task.title, task.course, {
-      fileName: selectedFile.name,
-      fileSize: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-      submittedBy: "Eki Kurniawan",
-      note: submitNote,
-    });
-    onSubmitted(task.id);
-    setSubmitDone(true);
-    setSelectedFile(null);
-    setSubmitNote("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
-
-  function handleSendComment() {
-    const text = commentText.trim();
-    if (!text) return;
-    addComment(task.id, task.title, task.course, {
-      author: "Eki Kurniawan",
-      role: "mahasiswa",
-      text,
-    });
-    onCommented(task.id);
-    setCommentText("");
-  }
-
-  const STATUS_CLS = {
-    "selesai":           "bg-mhs-green/15 text-mhs-green",
-    "sedang dikerjakan": "bg-mhs-teal/15 text-mhs-teal",
-    "menunggu review":   "bg-mhs-purple/15 text-mhs-purple",
-    "belum mulai":       "bg-mhs-muted/15 text-mhs-muted",
-  };
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-[420px] bg-mhs-surface border-l border-mhs-border shadow-[−8px_0_32px_rgba(0,0,0,0.2)] z-50 flex flex-col animate-slideInRight overflow-hidden">
-
-        {/* Header */}
-        <div className="px-5 pt-5 pb-4 border-b border-mhs-border shrink-0">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="min-w-0">
-              <div className="text-[15px] font-semibold text-mhs-text leading-snug">{task.title}</div>
-              <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md mt-1 ${mkColor(task.course)}`}>
-                {task.course}
-              </span>
-            </div>
-            <button onClick={onClose} className="text-mhs-muted hover:text-mhs-text transition-colors shrink-0 mt-0.5">
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* Status row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${STATUS_CLS[task.status as keyof typeof STATUS_CLS] ?? "bg-mhs-muted/10 text-mhs-muted"}`}>
-              {task.status}
-            </span>
-            <span className={`font-mono text-[10px] px-2 py-1 rounded-md ${dl.cls}`}>
-              Deadline {formatDate(task.deadline)} · {dl.label}
-            </span>
-          </div>
-
-          {task.note && (
-            <p className="text-[11.5px] text-mhs-muted mt-2.5 leading-relaxed">{task.note}</p>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-0.5 px-4 pt-3 pb-0 shrink-0">
-          <button
-            onClick={() => setTab("submit")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-t-lg text-[12.5px] font-medium transition-all border-b-2 ${
-              tab === "submit"
-                ? "text-mhs-amber border-mhs-amber bg-mhs-amber/5"
-                : "text-mhs-muted border-transparent hover:text-mhs-text"
-            }`}
-          >
-            <Upload size={13} /> Kumpulkan
-            {allSubs.length > 0 && (
-              <span className="bg-mhs-green/20 text-mhs-green text-[10px] font-bold px-1.5 py-0.5 rounded-full">{allSubs.length}</span>
-            )}
-          </button>
-          <button
-            onClick={() => setTab("comment")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-t-lg text-[12.5px] font-medium transition-all border-b-2 ${
-              tab === "comment"
-                ? "text-mhs-amber border-mhs-amber bg-mhs-amber/5"
-                : "text-mhs-muted border-transparent hover:text-mhs-text"
-            }`}
-          >
-            <MessageSquare size={13} /> Komentar
-            {allComments.length > 0 && (
-              <span className="bg-mhs-muted/20 text-mhs-muted text-[10px] font-bold px-1.5 py-0.5 rounded-full">{allComments.length}</span>
-            )}
-          </button>
-        </div>
-        <div className="h-px bg-mhs-border mx-4 shrink-0" />
-
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto">
-
-          {/* ── SUBMIT TAB ── */}
-          {tab === "submit" && (
-            <div className="p-5 flex flex-col gap-4">
-
-              {/* Existing submissions */}
-              {allSubs.length > 0 && (
-                <div>
-                  <div className="text-[11px] text-mhs-muted uppercase tracking-[0.08em] mb-2">File Terkumpul</div>
-                  <div className="flex flex-col gap-2">
-                    {allSubs.map((s, i) => (
-                      <div key={s.id || i} className="bg-mhs-bg border border-mhs-border rounded-xl p-3 flex items-start gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-mhs-green/15 text-mhs-green flex items-center justify-center shrink-0 mt-0.5">
-                          <Paperclip size={14} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[12.5px] font-medium text-mhs-text truncate">{s.fileName}</div>
-                          <div className="text-[11px] text-mhs-muted mt-0.5">
-                            {s.submittedBy} · {s.submittedAt}
-                            {s.fileSize && <> · {s.fileSize}</>}
-                          </div>
-                          {s.note && <div className="text-[11px] text-mhs-muted mt-0.5 italic">"{s.note}"</div>}
-                        </div>
-                        <span className="shrink-0">
-                          <CheckCircle2 size={14} className="text-mhs-green" />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Success flash */}
-              {submitDone && (
-                <div className="bg-mhs-green/10 border border-mhs-green/25 rounded-xl px-4 py-3 flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-mhs-green shrink-0" />
-                  <span className="text-[12.5px] text-mhs-green font-medium">Tugas berhasil dikumpulkan!</span>
-                </div>
-              )}
-
-              {/* Upload form */}
-              <div className="bg-mhs-bg border border-mhs-border rounded-xl p-4">
-                <div className="text-[12px] font-semibold text-mhs-text mb-3">
-                  {allSubs.length > 0 ? "Kumpulkan Revisi" : "Kumpulkan Tugas"}
-                </div>
-
-                {/* File picker */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className={`flex items-center gap-3 border-2 border-dashed rounded-xl px-4 py-4 cursor-pointer transition-all mb-3 ${
-                    selectedFile
-                      ? "border-mhs-green/40 bg-mhs-green/5"
-                      : "border-mhs-border hover:border-mhs-amber/50 hover:bg-mhs-amber/3"
-                  }`}
-                >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${selectedFile ? "bg-mhs-green/15 text-mhs-green" : "bg-mhs-card text-mhs-muted"}`}>
-                    {selectedFile ? <CheckCircle2 size={18} /> : <Upload size={18} />}
-                  </div>
-                  <div className="min-w-0">
-                    {selectedFile ? (
-                      <>
-                        <div className="text-[12.5px] font-medium text-mhs-text truncate">{selectedFile.name}</div>
-                        <div className="text-[11px] text-mhs-muted">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-[12.5px] font-medium text-mhs-text">Pilih file</div>
-                        <div className="text-[11px] text-mhs-muted">PDF, DOCX, ZIP, dll.</div>
-                      </>
-                    )}
-                  </div>
-                </label>
-
-                {/* Note */}
-                <textarea
-                  value={submitNote}
-                  onChange={e => setSubmitNote(e.target.value)}
-                  placeholder="Catatan pengumpulan (opsional)…"
-                  rows={2}
-                  className="w-full bg-mhs-card border border-mhs-border rounded-xl px-3 py-2.5 text-[12.5px] text-mhs-text placeholder:text-mhs-muted outline-none focus:border-mhs-amber transition-colors resize-none mb-3"
-                />
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={!selectedFile}
-                  className="w-full bg-mhs-amber hover:bg-mhs-amber-2 disabled:opacity-40 disabled:cursor-not-allowed text-mhs-on font-semibold py-2.5 rounded-xl text-[13px] transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(217,119,6,0.35)] active:translate-y-0 flex items-center justify-center gap-2"
-                >
-                  <Upload size={14} />
-                  Kumpulkan Tugas
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── COMMENT TAB ── */}
-          {tab === "comment" && (
-            <div className="flex flex-col h-full">
-              {/* Comment list */}
-              <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
-                {allComments.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-10 text-mhs-muted/50">
-                    <MessageSquare size={32} className="mb-2 opacity-40" />
-                    <span className="text-[12px]">Belum ada komentar</span>
-                  </div>
-                )}
-                {allComments.map((c, i) => {
-                  const isMine = c.role === "mahasiswa";
-                  return (
-                    <div key={c.id || i} className={`flex gap-2.5 ${isMine ? "flex-row-reverse" : ""}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0 ${
-                        c.role === "dosen" ? "bg-gradient-to-br from-forest to-teal" : "bg-gradient-to-br from-mhs-amber to-mhs-amber-2"
-                      }`}>
-                        {c.author.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
-                      </div>
-                      <div className={`max-w-[280px] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
-                        <div className={`flex items-center gap-1.5 mb-1 ${isMine ? "flex-row-reverse" : ""}`}>
-                          <span className="text-[11px] font-semibold text-mhs-text">{c.author}</span>
-                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${c.role === "dosen" ? "bg-forest/15 text-forest" : "bg-mhs-amber/15 text-mhs-amber"}`}>
-                            {c.role === "dosen" ? "Dosen" : "Saya"}
-                          </span>
-                        </div>
-                        <div className={`rounded-2xl px-3.5 py-2.5 text-[12.5px] leading-relaxed ${
-                          isMine
-                            ? "bg-mhs-amber/15 text-mhs-text rounded-tr-sm"
-                            : "bg-mhs-card text-mhs-text rounded-tl-sm border border-mhs-border"
-                        }`}>
-                          {c.text}
-                        </div>
-                        <span className="text-[10px] text-mhs-muted mt-1">{c.time}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-                <div ref={commentsEndRef} />
-              </div>
-
-              {/* Comment input */}
-              <div className="px-4 py-3 border-t border-mhs-border bg-mhs-surface shrink-0">
-                <div className="flex gap-2 items-end">
-                  <textarea
-                    value={commentText}
-                    onChange={e => setCommentText(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendComment(); } }}
-                    placeholder="Tulis komentar…"
-                    rows={1}
-                    className="flex-1 bg-mhs-card border border-mhs-border rounded-xl px-3 py-2.5 text-[12.5px] text-mhs-text placeholder:text-mhs-muted outline-none focus:border-mhs-amber transition-colors resize-none"
-                  />
-                  <button
-                    onClick={handleSendComment}
-                    disabled={!commentText.trim()}
-                    className="w-9 h-9 bg-mhs-amber hover:bg-mhs-amber-2 disabled:opacity-40 text-mhs-on rounded-xl flex items-center justify-center transition-all shrink-0"
-                  >
-                    <Send size={14} />
-                  </button>
-                </div>
-                <div className="text-[10px] text-mhs-muted mt-1.5">Enter untuk kirim · Shift+Enter untuk baris baru</div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -569,13 +228,14 @@ function ListView({ tasks, storeData, onOpen }: { tasks: MhsTask[]; storeData: R
 
 /* ── Main Page ───────────────────────────────── */
 export default function TugasPage() {
+  const topbarQ = useSearch();
   const [view, setView]           = useState("kanban");
   const [filter, setFilter]       = useState("semua");
   const [search, setSearch]       = useState("");
   const [selectedTask, setSelectedTask] = useState<MhsTask | null>(null);
   const [storeData, setStoreData] = useState<Record<string, TaskEntry>>({});
 
-  const tasks = allData.tasks;
+  const tasks = allData.tasks.filter(t => t.type === "individu");
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -592,12 +252,13 @@ export default function TugasPage() {
       filter === "aktif"   ? t.status !== "selesai" :
       filter === "selesai" ? t.status === "selesai" :
       filter === "deadline" ? (() => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && t.status !== "selesai"; })() : true;
-    const matchSearch = search === "" || t.title.toLowerCase().includes(search.toLowerCase()) || t.course.toLowerCase().includes(search.toLowerCase());
+    const term = search || topbarQ;
+    const matchSearch = term === "" || t.title.toLowerCase().includes(term.toLowerCase()) || t.course.toLowerCase().includes(term.toLowerCase());
     return matchFilter && matchSearch;
   });
 
   const stats = [
-    { icon: "🗂",  value: tasks.length, label: "Total Tugas", sub: `${tasks.filter(t => t.type === "kelompok").length} kelompok, ${tasks.filter(t => t.type === "individu").length} individu`, accent: "text-mhs-amber", bg: "from-mhs-amber/10 to-transparent", dot: "bg-mhs-amber" },
+    { icon: "🗂",  value: tasks.length, label: "Total Tugas Individu", sub: `${tasks.filter(t => t.status !== "selesai").length} aktif, ${tasks.filter(t => t.status === "selesai").length} selesai`, accent: "text-mhs-amber", bg: "from-mhs-amber/10 to-transparent", dot: "bg-mhs-amber" },
     { icon: "⚡", value: tasks.filter(t => t.status === "sedang dikerjakan").length, label: "Dalam Proses", sub: "aktif dikerjakan", accent: "text-mhs-teal", bg: "from-mhs-teal/10 to-transparent", dot: "bg-mhs-teal" },
     { icon: "🔍", value: tasks.filter(t => t.status === "menunggu review").length, label: "Menunggu Review", sub: "butuh feedback dosen", accent: "text-mhs-purple", bg: "from-mhs-purple/10 to-transparent", dot: "bg-mhs-purple" },
     { icon: "✅", value: tasks.filter(t => t.status === "selesai").length, label: "Selesai", sub: `${Math.round((tasks.filter(t => t.status === "selesai").length / tasks.length) * 100)}% completion rate`, accent: "text-mhs-green", bg: "from-mhs-green/10 to-transparent", dot: "bg-mhs-green" },
