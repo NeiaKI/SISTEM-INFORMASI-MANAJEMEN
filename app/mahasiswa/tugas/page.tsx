@@ -9,6 +9,11 @@ import { TaskDetailPanel, type MhsTask, mkColor, deadlineInfo, formatDate } from
 
 const allData = createSeedData().mahasiswa;
 
+function effectiveStatus(task: MhsTask, localData?: TaskEntry): string {
+  if (localData?.completed) return "selesai";
+  return task.status;
+}
+
 /* ── Helpers ─────────────────────────────────── */
 const PRIORITY_BORDER = {
   kritis:  "border-l-[3px] border-l-mhs-rose",
@@ -38,7 +43,8 @@ const COLUMNS = [
 
 /* ── Task Card ───────────────────────────────── */
 function TaskCard({ task, localData, onOpen }: { task: MhsTask; localData: TaskEntry | undefined; onOpen: (t: MhsTask) => void }) {
-  const dl = deadlineInfo(task.deadline, task.status === "selesai");
+  const status = effectiveStatus(task, localData);
+  const dl = deadlineInfo(task.deadline, status === "selesai");
   const pLabel = PRIORITY_LABEL[task.priority as keyof typeof PRIORITY_LABEL] ?? { cls: "bg-mhs-muted/15 text-mhs-muted", label: task.priority };
   const totalComments = (task.comments?.length || 0) + (localData?.comments?.length || 0);
   const totalSubs     = (task.submissions?.length || 0) + (localData?.submissions?.length || 0);
@@ -65,18 +71,6 @@ function TaskCard({ task, localData, onOpen }: { task: MhsTask; localData: TaskE
         <p className="text-[11px] text-mhs-muted leading-relaxed mb-3 line-clamp-2">
           {task.note}
         </p>
-      )}
-
-      {task.progress > 0 && (
-        <div className="mb-3">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-[10px] text-mhs-muted">Progress</span>
-            <span className="font-mono text-[10px] text-mhs-amber">{task.progress}%</span>
-          </div>
-          <div className="h-[5px] bg-mhs-border rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-mhs-amber to-mhs-amber-2 transition-all duration-700" style={{ width: `${task.progress}%` }} />
-          </div>
-        </div>
       )}
 
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -116,8 +110,8 @@ function KanbanBoard({ tasks, storeData, onOpen, filter }: { tasks: MhsTask[]; s
     if (da !== db) return da - db;
     return (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9);
   };
-  const active   = tasks.filter(t => t.status !== "selesai").sort(sortFn);
-  const selesai  = tasks.filter(t => t.status === "selesai").sort(sortFn);
+  const active   = tasks.filter(t => effectiveStatus(t, storeData[t.id]) !== "selesai").sort(sortFn);
+  const selesai  = tasks.filter(t => effectiveStatus(t, storeData[t.id]) === "selesai").sort(sortFn);
 
   return (
     <div className="flex flex-col gap-6">
@@ -158,15 +152,16 @@ function ListView({ tasks, storeData, onOpen }: { tasks: MhsTask[]; storeData: R
       <table className="w-full text-[13px] border-collapse">
         <thead>
           <tr className="bg-mhs-surface/60">
-            {["Tugas", "MK", "Deadline", "Progress", "Status", "Prioritas", ""].map(h => (
+            {["Tugas", "MK", "Deadline", "Status", "Prioritas", ""].map(h => (
               <th key={h} className="text-left py-3 px-4 text-[11px] font-semibold text-mhs-muted uppercase tracking-[0.06em] border-b border-mhs-border">{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {tasks.map(task => {
-            const dl = deadlineInfo(task.deadline, task.status === "selesai");
             const ld = storeData[task.id];
+            const status = effectiveStatus(task, ld);
+            const dl = deadlineInfo(task.deadline, status === "selesai");
             const totalComments = (task.comments?.length || 0) + (ld?.comments?.length || 0);
             const totalSubs     = (task.submissions?.length || 0) + (ld?.submissions?.length || 0);
             return (
@@ -190,18 +185,10 @@ function ListView({ tasks, storeData, onOpen }: { tasks: MhsTask[]; storeData: R
                 <td className="py-3.5 px-4">
                   <span className={`font-mono text-[11px] px-2 py-0.5 rounded-md ${dl.cls}`}>{dl.label}</span>
                 </td>
-                <td className="py-3.5 px-4 w-36">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-mhs-border rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-mhs-amber to-mhs-amber-2 rounded-full" style={{ width: `${task.progress}%` }} />
-                    </div>
-                    <span className="font-mono text-[10px] text-mhs-muted w-7 text-right">{task.progress}%</span>
-                  </div>
-                </td>
                 <td className="py-3.5 px-4">
                   {(() => {
                     const map = { "selesai": "bg-mhs-green/15 text-mhs-green", "sedang dikerjakan": "bg-mhs-teal/15 text-mhs-teal", "menunggu review": "bg-mhs-purple/15 text-mhs-purple", "belum mulai": "bg-mhs-muted/15 text-mhs-muted" };
-                    return <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${map[task.status as keyof typeof map] ?? "bg-mhs-muted/10 text-mhs-muted"}`}>{task.status}</span>;
+                    return <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${map[status as keyof typeof map] ?? "bg-mhs-muted/10 text-mhs-muted"}`}>{status}</span>;
                   })()}
                 </td>
                 <td className="py-3.5 px-4">
@@ -249,26 +236,19 @@ export default function TugasPage() {
   const filtered = tasks.filter(t => {
     const matchFilter =
       filter === "semua"   ? true :
-      filter === "aktif"   ? t.status !== "selesai" :
-      filter === "selesai" ? t.status === "selesai" :
-      filter === "deadline" ? (() => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && t.status !== "selesai"; })() : true;
+      filter === "aktif"   ? effectiveStatus(t, storeData[t.id]) !== "selesai" :
+      filter === "selesai" ? effectiveStatus(t, storeData[t.id]) === "selesai" :
+      filter === "deadline" ? (() => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && effectiveStatus(t, storeData[t.id]) !== "selesai"; })() : true;
     const term = search || topbarQ;
     const matchSearch = term === "" || t.title.toLowerCase().includes(term.toLowerCase()) || t.course.toLowerCase().includes(term.toLowerCase());
     return matchFilter && matchSearch;
   });
 
-  const stats = [
-    { icon: "🗂",  value: tasks.length, label: "Total Tugas Individu", sub: `${tasks.filter(t => t.status !== "selesai").length} aktif, ${tasks.filter(t => t.status === "selesai").length} selesai`, accent: "text-mhs-amber", bg: "from-mhs-amber/10 to-transparent", dot: "bg-mhs-amber" },
-    { icon: "⚡", value: tasks.filter(t => t.status === "sedang dikerjakan").length, label: "Dalam Proses", sub: "aktif dikerjakan", accent: "text-mhs-teal", bg: "from-mhs-teal/10 to-transparent", dot: "bg-mhs-teal" },
-    { icon: "🔍", value: tasks.filter(t => t.status === "menunggu review").length, label: "Menunggu Review", sub: "butuh feedback dosen", accent: "text-mhs-purple", bg: "from-mhs-purple/10 to-transparent", dot: "bg-mhs-purple" },
-    { icon: "✅", value: tasks.filter(t => t.status === "selesai").length, label: "Selesai", sub: `${Math.round((tasks.filter(t => t.status === "selesai").length / tasks.length) * 100)}% completion rate`, accent: "text-mhs-green", bg: "from-mhs-green/10 to-transparent", dot: "bg-mhs-green" },
-  ];
-
   const filterTabs = [
     { id: "semua",   label: "Semua",   count: tasks.length },
-    { id: "aktif",   label: "Aktif",   count: tasks.filter(t => t.status !== "selesai").length },
-    { id: "selesai", label: "Selesai", count: tasks.filter(t => t.status === "selesai").length },
-    { id: "deadline", label: "Mepet",  count: tasks.filter(t => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && t.status !== "selesai"; }).length },
+    { id: "aktif",   label: "Aktif",   count: tasks.filter(t => effectiveStatus(t, storeData[t.id]) !== "selesai").length },
+    { id: "selesai", label: "Selesai", count: tasks.filter(t => effectiveStatus(t, storeData[t.id]) === "selesai").length },
+    { id: "deadline", label: "Mepet",  count: tasks.filter(t => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && effectiveStatus(t, storeData[t.id]) !== "selesai"; }).length },
   ];
 
   return (
@@ -294,21 +274,6 @@ export default function TugasPage() {
           </div>
           <div className="text-[12px] text-mhs-muted mt-1">Semester Genap 2025/2026 · {tasks.length} tugas total</div>
         </div>
-      </div>
-
-      {/* STAT CARDS */}
-      <div className="grid grid-cols-4 gap-3">
-        {stats.map((s, i) => (
-          <div key={i} className={`bg-gradient-to-br ${s.bg} bg-mhs-card border border-mhs-border rounded-2xl p-4 relative overflow-hidden hover:-translate-y-0.5 transition-transform`}>
-            <div className="flex items-start justify-between mb-3">
-              <span className="text-[22px]">{s.icon}</span>
-              <div className={`w-2 h-2 rounded-full ${s.dot} mt-1`} />
-            </div>
-            <div className={`font-serif text-[30px] leading-none ${s.accent} mb-1`}>{s.value}</div>
-            <div className="text-[12px] font-semibold text-mhs-text">{s.label}</div>
-            <div className="text-[11px] text-mhs-muted mt-0.5">{s.sub}</div>
-          </div>
-        ))}
       </div>
 
       {/* FILTER + SEARCH + VIEW TOGGLE */}

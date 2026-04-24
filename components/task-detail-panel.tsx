@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MessageSquare, Paperclip, X, Send, Upload, CheckCircle2 } from "lucide-react";
-import { addSubmission, addComment, type TaskEntry } from "@/lib/taskStore";
+import { addSubmission, addComment, markCompleted, type TaskEntry } from "@/lib/taskStore";
 import type { SeedData } from "@/data/sim-data";
 
 export type MhsTask = SeedData["mahasiswa"]["tasks"][0];
@@ -96,6 +96,7 @@ export function TaskDetailPanel({
       submittedBy,
       note: submitNote,
     });
+    markCompleted(task.id);
     onSubmitted(task.id);
     setSubmitDone(true);
     setSelectedFile(null);
