@@ -591,7 +591,7 @@ export default function TugasPage() {
       filter === "semua"   ? true :
       filter === "aktif"   ? t.status !== "selesai" :
       filter === "selesai" ? t.status === "selesai" :
-      filter === "deadline" ? (Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000) <= 5 && t.status !== "selesai") : true;
+      filter === "deadline" ? (() => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && t.status !== "selesai"; })() : true;
     const matchSearch = search === "" || t.title.toLowerCase().includes(search.toLowerCase()) || t.course.toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
@@ -607,7 +607,7 @@ export default function TugasPage() {
     { id: "semua",   label: "Semua",   count: tasks.length },
     { id: "aktif",   label: "Aktif",   count: tasks.filter(t => t.status !== "selesai").length },
     { id: "selesai", label: "Selesai", count: tasks.filter(t => t.status === "selesai").length },
-    { id: "deadline", label: "Mepet",  count: tasks.filter(t => Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000) <= 5 && t.status !== "selesai").length },
+    { id: "deadline", label: "Mepet",  count: tasks.filter(t => { const d = Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86400000); return d >= 0 && d <= 7 && t.status !== "selesai"; }).length },
   ];
 
   return (
