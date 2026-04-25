@@ -27,17 +27,7 @@ function initials(name: string) {
 }
 
 function isGradingAvailable(task: DosenTask): boolean {
-  const isSelesai = task.closed || task.status === "selesai";
-  if (!isSelesai) return false;
-  if (!task.closedAt) return true; // seed data — anggap sudah lama ditutup
-  const hoursSinceClosed = (Date.now() - new Date(task.closedAt).getTime()) / 3_600_000;
-  return hoursSinceClosed >= 24;
-}
-
-function hoursUntilGrading(task: DosenTask): number {
-  if (!task.closedAt) return 0;
-  const hoursSinceClosed = (Date.now() - new Date(task.closedAt).getTime()) / 3_600_000;
-  return Math.max(0, Math.ceil(24 - hoursSinceClosed));
+  return task.closed === true || task.status === "selesai";
 }
 
 export default function DosenRekapPage() {
@@ -387,21 +377,8 @@ export default function DosenRekapPage() {
           {!gradingOk && (
             <div className="px-5 py-3 bg-gold/10 border-b border-border flex items-center gap-2.5 text-[13px]">
               <Lock size={14} className="text-gold shrink-0" />
-              {(task.closed || task.status === "selesai") ? (
-                <>
-                  <span className="text-gold font-semibold">Penilaian Terkunci</span>
-                  <span className="text-muted">
-                    — tersedia dalam{" "}
-                    <span className="font-mono font-semibold text-gold">{hoursUntilGrading(task)} jam</span>
-                    {" "}lagi setelah tugas ditutup
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="text-gold font-semibold">Tugas Belum Ditutup</span>
-                  <span className="text-muted">— tutup tugas di menu Manajemen Tugas untuk mengaktifkan penilaian</span>
-                </>
-              )}
+              <span className="text-gold font-semibold">Tugas Belum Ditutup</span>
+              <span className="text-muted">— tutup tugas di menu Manajemen Tugas untuk mengaktifkan penilaian</span>
             </div>
           )}
 
