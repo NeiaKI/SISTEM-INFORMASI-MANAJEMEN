@@ -115,17 +115,20 @@ export default function DosenRekapPage() {
     },
   ] : [];
 
-  const allNewSubmissions = Object.entries(studentStore).flatMap(([, entry]) => {
+  const allNewSubmissions = Object.entries(studentStore).flatMap(([taskId, entry]) => {
     const e = entry as TaskEntry;
-    return (e.submissions || []).map(s => ({ ...s, taskTitle: e.taskTitle, taskCourse: e.taskCourse }));
+    return (e.submissions || []).map(s => ({ ...s, taskId, taskTitle: e.taskTitle, taskCourse: e.taskCourse }));
   }).filter(s => !dismissedSubmissions.includes(String(s.id)));
 
-  const allNewComments = Object.entries(studentStore).flatMap(([, entry]) => {
+  const allNewComments = Object.entries(studentStore).flatMap(([taskId, entry]) => {
     const e = entry as TaskEntry;
-    return (e.comments || []).map(c => ({ ...c, taskTitle: e.taskTitle, taskCourse: e.taskCourse }));
+    return (e.comments || []).map(c => ({ ...c, taskId, taskTitle: e.taskTitle, taskCourse: e.taskCourse }));
   }).filter(c => !dismissedComments.includes(String(c.id)));
 
-  const hasNewActivity = allNewSubmissions.length > 0 || allNewComments.length > 0;
+  // Filter berdasarkan task yang sedang aktif
+  const taskSubmissions = activeTask ? allNewSubmissions.filter(s => s.taskId === activeTask) : allNewSubmissions;
+  const taskComments    = activeTask ? allNewComments.filter(c => c.taskId === activeTask) : allNewComments;
+  const hasNewActivity  = taskSubmissions.length > 0 || taskComments.length > 0;
 
   function toggleComments(key: string) {
     setExpandedComments(prev => ({ ...prev, [key]: !prev[key] }));
@@ -206,7 +209,7 @@ export default function DosenRekapPage() {
             <div className="w-2 h-2 rounded-full bg-forest animate-pulse" />
             <h3 className="text-[13.5px] font-semibold text-ink flex-1">Kiriman Baru dari Mahasiswa</h3>
             <span className="text-[11px] text-muted mr-2">
-              {allNewSubmissions.length} file · {allNewComments.length} komentar
+              {taskSubmissions.length} file · {taskComments.length} komentar
             </span>
             <button
               onClick={() => {
@@ -222,13 +225,13 @@ export default function DosenRekapPage() {
             </button>
           </div>
 
-          {allNewSubmissions.length > 0 && (
+          {taskSubmissions.length > 0 && (
             <div className="px-5 py-4 border-b border-border/60">
               <div className="text-[11px] text-muted uppercase tracking-[0.08em] mb-3 flex items-center justify-between gap-1.5">
                 <span className="flex items-center gap-1.5"><Paperclip size={11} /> File Dikumpulkan</span>
                 <button
                   onClick={() => {
-                    const allIds = allNewSubmissions.map((s, i) => String(s.id ?? i));
+                    const allIds = taskSubmissions.map((s, i) => String(s.id ?? i));
                     setDismissedSubmissions(prev => {
                       const next = [...new Set([...prev, ...allIds])];
                       localStorage.setItem("dosen_dismissed_submissions", JSON.stringify(next));
@@ -242,7 +245,7 @@ export default function DosenRekapPage() {
                 </button>
               </div>
               <div className="flex flex-col gap-2">
-                {allNewSubmissions.map((s, i) => (
+                {taskSubmissions.map((s, i) => (
                   <div key={s.id || i} className="flex items-start gap-3 bg-cream/60 rounded-xl px-4 py-3 group">
                     <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
                       {initials(s.submittedBy || "EK")}
@@ -274,13 +277,13 @@ export default function DosenRekapPage() {
             </div>
           )}
 
-          {allNewComments.length > 0 && (
+          {taskComments.length > 0 && (
             <div className="px-5 py-4">
               <div className="text-[11px] text-muted uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5 justify-between">
                 <span className="flex items-center gap-1.5"><MessageSquare size={11} /> Komentar Mahasiswa</span>
                 <button
                   onClick={() => {
-                    const allIds = allNewComments.map((c, i) => String(c.id ?? i));
+                    const allIds = taskComments.map((c, i) => String(c.id ?? i));
                     setDismissedComments(prev => {
                       const next = [...new Set([...prev, ...allIds])];
                       localStorage.setItem("dosen_dismissed_comments", JSON.stringify(next));
@@ -294,7 +297,7 @@ export default function DosenRekapPage() {
                 </button>
               </div>
               <div className="flex flex-col gap-2">
-                {allNewComments.map((c, i) => (
+                {taskComments.map((c, i) => (
                   <div key={c.id || i} className="flex gap-3 bg-cream/60 rounded-xl px-4 py-3 group relative">
                     <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
                       {initials(c.author || "EK")}
