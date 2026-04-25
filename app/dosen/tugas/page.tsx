@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { X, CheckCircle } from "lucide-react";
 import { createSeedData } from "@/data/sim-data";
 import { useSearch } from "@/lib/search-context";
 
 const seedData = createSeedData().dosen;
 
-type Task = (typeof seedData.tasks)[0] & { note?: string; createdAt?: string; closed?: boolean };
+type Task = (typeof seedData.tasks)[0] & { note?: string; createdAt?: string; closed?: boolean; closedAt?: string };
 
 const MK_COLORS = [
   "bg-forest/10 text-forest",
@@ -58,7 +59,9 @@ function deadlineCls(d: string) {
 
 export default function DosenTugasPage() {
   const topbarQ = useSearch();
-  const [filter, setFilter]       = useState("semua");
+  const router = useRouter();
+  const [filter, setFilter]         = useState("semua");
+  const [courseFilter, setCourseFilter] = useState("");
   const [allTasks, setAllTasks]   = useState<Task[]>(seedData.tasks);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createForm, setCreateForm]     = useState(EMPTY_FORM);
@@ -135,15 +138,20 @@ export default function DosenTugasPage() {
   }
 
   function handleClose(id: string) {
-    const updated = allTasks.map(t => t.id === id ? { ...t, closed: true } : t);
+    const updated = allTasks.map(t => t.id === id ? { ...t, closed: true, closedAt: new Date().toISOString() } : t);
     setAllTasks(updated);
     syncLocalStorage(updated);
   }
 
   function handleReopen(id: string) {
-    const updated = allTasks.map(t => t.id === id ? { ...t, closed: false, status: "sedang dikerjakan" } : t);
+    const updated = allTasks.map(t => t.id === id ? { ...t, closed: false, status: "sedang dikerjakan", closedAt: undefined } : t);
     setAllTasks(updated);
     syncLocalStorage(updated);
+  }
+
+  function handleGoToRekap(id: string) {
+    localStorage.setItem("dosen_rekap_active_task", id);
+    router.push("/dosen/rekap");
   }
 
   const data = { ...seedData, tasks: allTasks };
@@ -153,14 +161,16 @@ export default function DosenTugasPage() {
     const matchFilter =
       filter === "aktif"   ? st !== "selesai" :
       filter === "selesai" ? st === "selesai" : true;
+    const matchCourse = !courseFilter || t.course === courseFilter;
     const matchQ = !topbarQ || t.title.toLowerCase().includes(topbarQ.toLowerCase()) || t.course.toLowerCase().includes(topbarQ.toLowerCase());
-    return matchFilter && matchQ;
+    return matchFilter && matchCourse && matchQ;
   });
 
+  const courseTasks = courseFilter ? data.tasks.filter(t => t.course === courseFilter) : data.tasks;
   const tabs = [
-    { id: "semua",   label: `Semua (${data.tasks.length})` },
-    { id: "aktif",   label: `Aktif (${data.tasks.filter(t => getTaskStatus(t) !== "selesai").length})` },
-    { id: "selesai", label: `Selesai (${data.tasks.filter(t => getTaskStatus(t) === "selesai").length})` },
+    { id: "semua",   label: `Semua (${courseTasks.length})` },
+    { id: "aktif",   label: `Aktif (${courseTasks.filter(t => getTaskStatus(t) !== "selesai").length})` },
+    { id: "selesai", label: `Selesai (${courseTasks.filter(t => getTaskStatus(t) === "selesai").length})` },
   ];
 
   const modalInputCls = "w-full bg-cream border border-border text-ink rounded-lg px-3 py-2 text-[13px] outline-none focus:border-forest transition-colors";
@@ -299,9 +309,13 @@ export default function DosenTugasPage() {
           <div className="font-serif text-[24px] text-ink">Manajemen Tugas</div>
         </div>
         <div className="flex gap-2 items-center">
-          <select className="bg-paper border-[1.5px] border-border text-ink-2 px-3 py-2 rounded-lg text-[13px] outline-none focus:border-forest transition-colors">
-            <option>Semua Mata Kuliah</option>
-            {[...new Set(data.tasks.map(t => t.course))].map(c => <option key={c}>{c}</option>)}
+          <select
+            value={courseFilter}
+            onChange={e => setCourseFilter(e.target.value)}
+            className="bg-paper border-[1.5px] border-border text-ink-2 px-3 py-2 rounded-lg text-[13px] outline-none focus:border-forest transition-colors"
+          >
+            <option value="">Semua Mata Kuliah</option>
+            {[...new Set(data.tasks.map(t => t.course))].map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <button
             onClick={() => setIsCreateOpen(true)}
@@ -315,9 +329,9 @@ export default function DosenTugasPage() {
       {/* STAT MINI ROW */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total Tugas", val: data.tasks.length,                                                      icon: "📋", accent: "text-forest", bg: "bg-forest/8" },
-          { label: "Aktif",       val: data.tasks.filter(t => getTaskStatus(t) !== "selesai").length,          icon: "⚡", accent: "text-gold",   bg: "bg-gold/8"   },
-          { label: "Selesai",     val: data.tasks.filter(t => getTaskStatus(t) === "selesai").length,          icon: "✅", accent: "text-teal",   bg: "bg-teal/8"   },
+          { label: "Total Tugas", val: courseTasks.length,                                                      icon: "📋", accent: "text-forest", bg: "bg-forest/8" },
+          { label: "Aktif",       val: courseTasks.filter(t => getTaskStatus(t) !== "selesai").length,          icon: "⚡", accent: "text-gold",   bg: "bg-gold/8"   },
+          { label: "Selesai",     val: courseTasks.filter(t => getTaskStatus(t) === "selesai").length,          icon: "✅", accent: "text-teal",   bg: "bg-teal/8"   },
         ].map((s, i) => (
           <div key={i} className={`${s.bg} border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3`}>
             <span className="text-[22px]">{s.icon}</span>
@@ -420,12 +434,20 @@ export default function DosenTugasPage() {
                           Tutup
                         </button>
                       ) : (
-                        <button
-                          onClick={() => handleReopen(task.id)}
-                          className="bg-paper text-teal border-[1.5px] border-teal/30 hover:bg-teal/5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap"
-                        >
-                          Buka Kembali
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleGoToRekap(task.id)}
+                            className="bg-forest text-white hover:bg-forest-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap"
+                          >
+                            Nilai →
+                          </button>
+                          <button
+                            onClick={() => handleReopen(task.id)}
+                            className="bg-paper text-teal border-[1.5px] border-teal/30 hover:bg-teal/5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap"
+                          >
+                            Buka Kembali
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => openEdit(task)}
