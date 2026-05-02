@@ -1,6 +1,6 @@
 # SIM Tugas — Sistem Informasi Manajemen Tugas & Proyek Kuliah
 
-Aplikasi web manajemen tugas dan proyek perkuliahan untuk mahasiswa dan dosen, dibangun dengan Next.js 15 App Router + React 19 + Tailwind CSS v4.
+Aplikasi web manajemen tugas dan proyek perkuliahan untuk mahasiswa, dosen, admin, dan staff TU — dibangun dengan Next.js 15 App Router + React 19 + Tailwind CSS v4.
 
 ---
 
@@ -13,21 +13,40 @@ Aplikasi web manajemen tugas dan proyek perkuliahan untuk mahasiswa dan dosen, d
 | **Tugas** | Daftar tugas per mata kuliah dengan status, prioritas, dan filter deadline |
 | **Proyek** | Manajemen proyek kelompok beserta detail aktivitas dan deliverable |
 | **Kelompok** | Lihat anggota kelompok, peran, dan info ketua |
+| **Participant** | Manajemen peserta kelompok |
 | **Kalender** | Tampilan kalender deadline tugas dan milestone proyek |
 | **Laporan** | Statistik progres personal per mata kuliah |
+| **Log Aktivitas** | Riwayat aktivitas tugas dan proyek |
 | **Notifikasi** | Reminder deadline dan update tugas |
 
 ### Dosen
 | Modul | Deskripsi |
 |---|---|
 | **Dashboard** | Overview kelas, tugas aktif, dan progres mahasiswa |
-| **Mata Kuliah** | Daftar mata kuliah yang diampu; klik untuk lihat submission tracker per tugas dan status tiap mahasiswa |
-| **Tugas** | Buat, edit, dan kelola tugas; status otomatis (Baru Dibuka / Berjalan / Selesai) berdasarkan waktu terbit dan aksi Tutup/Buka Kembali |
+| **Mata Kuliah** | Daftar mata kuliah yang diampu; klik untuk lihat submission tracker per tugas |
+| **Tugas** | Buat, edit, dan kelola tugas; status otomatis berdasarkan waktu terbit dan aksi Tutup/Buka Kembali |
 | **Kelompok** | Buat kelompok manual atau acak otomatis; edit anggota dan ukuran kelompok |
 | **Mahasiswa** | Data mahasiswa per mata kuliah dengan tabel nilai dan status keaktifan |
 | **Rekap** | Laporan rekapitulasi nilai dan progres kelas |
 | **Laporan** | Statistik dan insight per mata kuliah |
+| **Log Aktivitas** | Riwayat aktivitas pengelolaan tugas |
 | **Notifikasi** | Kirim reminder ke mahasiswa |
+
+### Admin
+| Modul | Deskripsi |
+|---|---|
+| **Dashboard** | Overview seluruh aktivitas sistem |
+| **Tugas** | Pantau dan kelola semua tugas di seluruh mata kuliah |
+| **Laporan** | Laporan agregat seluruh program studi |
+| **Notifikasi** | Kelola notifikasi sistem |
+
+### Staff TU
+| Modul | Deskripsi |
+|---|---|
+| **Dashboard** | Overview administrasi akademik |
+| **Tugas** | Pantau tugas yang memerlukan tindakan administratif |
+| **Laporan** | Laporan administratif dan rekap data |
+| **Notifikasi** | Notifikasi urusan tata usaha |
 
 ---
 
@@ -43,7 +62,7 @@ Aplikasi web manajemen tugas dan proyek perkuliahan untuk mahasiswa dan dosen, d
 | State | `useState` / `localStorage` (no backend) |
 | Icons | Lucide React |
 
-> Saat ini aplikasi berjalan sebagai **frontend-only prototype** — semua data bersifat mock dan disimpan di `localStorage`. Tidak ada database atau API nyata.
+> Saat ini aplikasi berjalan sebagai **frontend-only prototype** — semua data bersifat mock. Tidak ada database atau API nyata.
 
 ---
 
@@ -51,31 +70,48 @@ Aplikasi web manajemen tugas dan proyek perkuliahan untuk mahasiswa dan dosen, d
 
 ```
 app/
-├── auth/login/         # Halaman login (pilih role mahasiswa/dosen)
+├── auth/login/         # Halaman login (pilih role)
 ├── mahasiswa/          # Dashboard & modul mahasiswa
 │   ├── tugas/
 │   ├── proyek/
 │   ├── kelompok/
+│   ├── participant/
 │   ├── kalender/
 │   ├── laporan/
+│   ├── log/
 │   └── notifikasi/
-└── dosen/              # Dashboard & modul dosen
-    ├── matakuliah/
+├── dosen/              # Dashboard & modul dosen
+│   ├── matakuliah/
+│   ├── tugas/
+│   ├── kelompok/
+│   ├── mahasiswa/
+│   ├── rekap/
+│   ├── laporan/
+│   ├── log/
+│   └── notifikasi/
+├── admin/              # Dashboard & modul admin
+│   ├── tugas/
+│   ├── laporan/
+│   └── notifikasi/
+└── staff-tu/           # Dashboard & modul staff TU
     ├── tugas/
-    ├── kelompok/
-    ├── mahasiswa/
-    ├── rekap/
     ├── laporan/
     └── notifikasi/
 
 components/
 ├── ui/                 # shadcn/ui primitives
-└── task-detail-panel   # Modal detail tugas mahasiswa
+├── empty-state.tsx     # Komponen state kosong
+├── task-detail-panel   # Modal detail tugas mahasiswa
+└── theme-provider.tsx  # Dark/light mode provider
 
 lib/
-├── search-context.tsx  # Context pencarian global (topbar)
-├── students-data.ts    # Data mock mahasiswa
-└── kelompokStore.ts    # Store kelompok
+├── taskStore.ts        # Store state tugas
+├── kelompokStore.ts    # Store state kelompok
+├── notifStore.ts       # Store state notifikasi
+├── activityLog.ts      # Helper log aktivitas
+├── exportUtils.ts      # Utilitas ekspor/download
+├── search-context.tsx  # Context pencarian global
+└── students-data.ts    # Data mock mahasiswa
 
 data/
 └── sim-data.ts         # Semua mock data dan konstanta
@@ -103,8 +139,12 @@ npm start
 
 Login di `/auth/login` — pilih role untuk masuk ke dashboard yang sesuai:
 
-- **Mahasiswa** — tema amber/teal, akses ke modul tugas dan proyek pribadi
-- **Dosen** — tema forest/gold on cream, akses ke manajemen kelas dan penilaian
+| Role | Tema | Akses |
+|---|---|---|
+| **Mahasiswa** | Amber/Teal | Tugas, proyek, dan aktivitas pribadi |
+| **Dosen** | Forest/Gold | Manajemen kelas, tugas, dan penilaian |
+| **Admin** | `adm-*` | Pantau seluruh sistem dan laporan agregat |
+| **Staff TU** | `stu-*` | Administrasi akademik dan laporan TU |
 
 Tidak ada autentikasi nyata; semua state bersifat lokal.
 
