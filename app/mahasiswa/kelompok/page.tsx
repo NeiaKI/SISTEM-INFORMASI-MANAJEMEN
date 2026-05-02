@@ -341,6 +341,10 @@ export default function KelompokPage() {
       flash("Ukuran tidak bisa lebih kecil dari jumlah anggota saat ini.");
       return;
     }
+    if (newSize > 10) {
+      flash("Kapasitas maksimal kelompok adalah 10 orang.");
+      return;
+    }
     const updGroups = groups.map((g) => g.id === groupId ? { ...g, maxSize: newSize } : g);
     persist(updGroups, invitations);
     setEditingMaxSize(null);
@@ -440,7 +444,7 @@ export default function KelompokPage() {
                               <input
                                 type="number"
                                 min={grp.members.length}
-                                max={20}
+                                max={10}
                                 value={editingMaxSize.value}
                                 onChange={e => setEditingMaxSize({ groupId: grp.id, value: e.target.value })}
                                 onKeyDown={e => { if (e.key === "Enter") handleSaveMaxSize(grp.id); if (e.key === "Escape") setEditingMaxSize(null); }}

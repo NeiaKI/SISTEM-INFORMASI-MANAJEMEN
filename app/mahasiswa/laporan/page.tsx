@@ -1,4 +1,7 @@
+"use client";
+
 import { createSeedData } from "@/data/sim-data";
+import { exportToCSV, printAsPDF } from "@/lib/exportUtils";
 
 const data = createSeedData().mahasiswa;
 
@@ -36,18 +39,31 @@ const courseStats = courses.map((course, idx) => {
 const maxWeekly = Math.max(...data.report.weekly.map(w => w.done));
 
 export default function LaporanPage() {
+  const handleExportCSV = () => {
+    const rows = data.tasks.map(t => ({
+      "Judul Tugas": t.title,
+      "Mata Kuliah": t.course,
+      "Jenis": t.type,
+      "Status": t.status,
+      "Prioritas": t.priority,
+      "Progres (%)": t.progress,
+      "Deadline": t.deadline,
+    }));
+    exportToCSV(rows, "laporan-mahasiswa.csv");
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <div className="text-[11px] text-mhs-muted uppercase tracking-[0.1em] mb-0.5">Modul</div>
           <div className="font-serif text-[22px] text-mhs-text">Laporan & Statistik</div>
         </div>
-        <div className="flex gap-2">
-          <button className="bg-mhs-card text-mhs-muted border border-mhs-border hover:text-mhs-text hover:border-mhs-muted px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
-            📊 Ekspor Excel
+        <div className="flex gap-2 print:hidden">
+          <button onClick={handleExportCSV} className="bg-mhs-card text-mhs-muted border border-mhs-border hover:text-mhs-text hover:border-mhs-muted px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
+            📊 Ekspor Excel (CSV)
           </button>
-          <button className="bg-mhs-card text-mhs-muted border border-mhs-border hover:text-mhs-text hover:border-mhs-muted px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
+          <button onClick={printAsPDF} className="bg-mhs-card text-mhs-muted border border-mhs-border hover:text-mhs-text hover:border-mhs-muted px-4 py-2 rounded-lg text-[13px] font-semibold transition-all">
             📄 Ekspor PDF
           </button>
         </div>

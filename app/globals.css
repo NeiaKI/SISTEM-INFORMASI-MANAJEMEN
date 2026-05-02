@@ -38,6 +38,32 @@
   --color-mhs-danger:  var(--mhs-danger);
   --color-mhs-on:      var(--mhs-on-accent);
 
+  /* Admin Kampus Theme Colors */
+  --color-adm-bg:      var(--adm-bg);
+  --color-adm-surface: var(--adm-surface);
+  --color-adm-card:    var(--adm-card);
+  --color-adm-border:  var(--adm-border);
+  --color-adm-accent:  var(--adm-accent);
+  --color-adm-accent2: var(--adm-accent-2);
+  --color-adm-text:    var(--adm-text);
+  --color-adm-muted:   var(--adm-muted);
+  --color-adm-muted2:  var(--adm-muted-2);
+  --color-adm-danger:  var(--adm-danger);
+  --color-adm-hover:   var(--adm-hover);
+
+  /* Staff TU Theme Colors */
+  --color-stu-bg:      var(--stu-bg);
+  --color-stu-surface: var(--stu-surface);
+  --color-stu-card:    var(--stu-card);
+  --color-stu-border:  var(--stu-border);
+  --color-stu-accent:  var(--stu-accent);
+  --color-stu-accent2: var(--stu-accent-2);
+  --color-stu-text:    var(--stu-text);
+  --color-stu-muted:   var(--stu-muted);
+  --color-stu-muted2:  var(--stu-muted-2);
+  --color-stu-danger:  var(--stu-danger);
+  --color-stu-hover:   var(--stu-hover);
+
   /* Legacy / Static Colors */
   --color-surface:     #0f0f23;
   --color-surface-50:  #1a1a3e;
@@ -404,6 +430,32 @@ html.light {
   --mhs-hover-rgb:     218 231 245;   /* was "15 23 42" which rendered as solid navy — now a light blue */
   --mhs-on-accent:     #ffffff;       /* was #0f172a — white text on amber-700 button (7:1 ratio) */
   --mhs-on-accent-rgb: 255 255 255;
+
+  /* Admin Kampus Theme (Indigo) */
+  --adm-bg:        #eef2ff;
+  --adm-surface:   #ffffff;
+  --adm-card:      #f5f3ff;
+  --adm-border:    #c7d2fe;
+  --adm-accent:    #4f46e5;
+  --adm-accent-2:  #6366f1;
+  --adm-text:      #1e1b4b;
+  --adm-muted:     #6366f1;
+  --adm-muted-2:   #818cf8;
+  --adm-danger:    #dc2626;
+  --adm-hover:     rgba(79,70,229,0.07);
+
+  /* Staff TU Theme (Teal) */
+  --stu-bg:        #f0fdfa;
+  --stu-surface:   #ffffff;
+  --stu-card:      #e6fffa;
+  --stu-border:    #99f6e4;
+  --stu-accent:    #0d9488;
+  --stu-accent-2:  #14b8a6;
+  --stu-text:      #134e4a;
+  --stu-muted:     #0f766e;
+  --stu-muted-2:   #2dd4bf;
+  --stu-danger:    #dc2626;
+  --stu-hover:     rgba(13,148,136,0.07);
 }
 
 html.dark {
@@ -469,6 +521,32 @@ html.dark {
   --mhs-hover-rgb: 30 37 54;          /* was "255 255 255" which rendered solid white — now a lighter dark */
   --mhs-on-accent: #111827;
   --mhs-on-accent-rgb: 17 24 39;
+
+  /* Admin Kampus Theme – dark */
+  --adm-bg:        #0f0f1a;
+  --adm-surface:   #16162a;
+  --adm-card:      #1e1e38;
+  --adm-border:    #2e2e5a;
+  --adm-accent:    #818cf8;
+  --adm-accent-2:  #a5b4fc;
+  --adm-text:      #e0e0ff;
+  --adm-muted:     #818cf8;
+  --adm-muted-2:   #6366f1;
+  --adm-danger:    #f87171;
+  --adm-hover:     rgba(129,140,248,0.08);
+
+  /* Staff TU Theme – dark */
+  --stu-bg:        #0a1614;
+  --stu-surface:   #0f1f1e;
+  --stu-card:      #162a28;
+  --stu-border:    #1f3d3a;
+  --stu-accent:    #2dd4bf;
+  --stu-accent-2:  #5eead4;
+  --stu-text:      #ccfbf1;
+  --stu-muted:     #14b8a6;
+  --stu-muted-2:   #2dd4bf;
+  --stu-danger:    #f87171;
+  --stu-hover:     rgba(45,212,191,0.08);
 }
 
 :root {
@@ -733,4 +811,13 @@ html.dark {
 .d-bar-label {
   font-size: 10px; color: var(--muted); margin-top: 10px;
   white-space: nowrap;
+}
+
+/* ── Print styles for PDF export ──────────────── */
+@media print {
+  body { background: white !important; color: black !important; }
+  aside, header, .print\:hidden, nav { display: none !important; }
+  main { margin-left: 0 !important; }
+  .animate-fadeIn { animation: none !important; }
+  * { box-shadow: none !important; }
 }

@@ -98,11 +98,12 @@ export default function LoginPage() {
 
     // Dummy generic login
     if (credential && password) {
-      if (role === "dosen") {
-        router.push("/dosen");
-      } else {
-        router.push("/mahasiswa");
-      }
+      const routes: Record<string, string> = {
+        dosen: "/dosen",
+        admin: "/admin",
+        staff_tu: "/staff-tu",
+      };
+      router.push(routes[role] ?? "/mahasiswa");
     } else {
       setError(true);
     }
@@ -225,7 +226,9 @@ export default function LoginPage() {
                   className="w-full bg-[#334155]/50 border border-[#475569] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none cursor-pointer"
                 >
                   <option value="mahasiswa" className="bg-[#1e293b]">Mahasiswa</option>
-                  <option value="dosen" className="bg-[#1e293b]">Dosen / Staff</option>
+                  <option value="dosen" className="bg-[#1e293b]">Dosen</option>
+                  <option value="admin" className="bg-[#1e293b]">Admin Kampus</option>
+                  <option value="staff_tu" className="bg-[#1e293b]">Staff TU</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#94a3b8]">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -260,7 +263,7 @@ export default function LoginPage() {
           <div className="mt-6 space-y-3">
             <button 
               type="button"
-              onClick={() => router.push(role === "dosen" ? "/dosen" : "/mahasiswa")}
+              onClick={() => router.push(role === "dosen" ? "/dosen" : role === "admin" ? "/admin" : role === "staff_tu" ? "/staff-tu" : "/mahasiswa")}
               className="w-full bg-[#334155]/50 hover:bg-[#334155] border border-[#475569] text-white font-medium py-3 rounded-xl flex items-center justify-center gap-3 transition-colors text-sm"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -274,7 +277,7 @@ export default function LoginPage() {
             
             <button 
               type="button"
-              onClick={() => router.push(role === "dosen" ? "/dosen" : "/mahasiswa")}
+              onClick={() => router.push(role === "dosen" ? "/dosen" : role === "admin" ? "/admin" : role === "staff_tu" ? "/staff-tu" : "/mahasiswa")}
               className="w-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/50 text-blue-400 font-medium py-3 rounded-xl flex items-center justify-center gap-3 transition-colors text-sm"
             >
               <KeyRound size={18} />

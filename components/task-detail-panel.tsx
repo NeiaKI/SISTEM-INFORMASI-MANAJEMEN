@@ -63,6 +63,9 @@ export function TaskDetailPanel({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitNote, setSubmitNote] = useState("");
   const [submitDone, setSubmitDone] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkNote, setLinkNote] = useState("");
+  const [linkDone, setLinkDone] = useState(false);
   const [commentText, setCommentText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
@@ -75,6 +78,9 @@ export function TaskDetailPanel({
     setSubmitDone(false);
     setSelectedFile(null);
     setSubmitNote("");
+    setLinkUrl("");
+    setLinkNote("");
+    setLinkDone(false);
     setCommentText("");
     setTab("submit");
   }, [task.id]);
@@ -95,6 +101,7 @@ export function TaskDetailPanel({
       fileSize: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
       submittedBy,
       note: submitNote,
+      type: "file",
     });
     markCompleted(task.id);
     onSubmitted(task.id);
@@ -102,6 +109,24 @@ export function TaskDetailPanel({
     setSelectedFile(null);
     setSubmitNote("");
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleSubmitLink() {
+    const url = linkUrl.trim();
+    if (!url) return;
+    try { new URL(url); } catch { return; }
+    addSubmission(task.id, task.title, task.course, {
+      fileName: url.length > 50 ? url.slice(0, 50) + "…" : url,
+      fileSize: "—",
+      submittedBy,
+      note: linkNote,
+      url,
+      type: "link",
+    });
+    onSubmitted(task.id);
+    setLinkDone(true);
+    setLinkUrl("");
+    setLinkNote("");
   }
 
   function handleSendComment() {
@@ -250,6 +275,16 @@ export function TaskDetailPanel({
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setTab("link")}
+                className={`flex items-center gap-1.5 px-4 py-2 text-[12.5px] font-medium transition-all border-b-2 -mb-px ${
+                  tab === "link"
+                    ? "text-mhs-amber border-mhs-amber bg-mhs-amber/5 rounded-t-lg"
+                    : "text-mhs-muted border-transparent hover:text-mhs-text"
+                }`}
+              >
+                <Paperclip size={13} /> Lampiran Link
+              </button>
             </div>
 
             {/* Tab content */}
@@ -307,6 +342,70 @@ export function TaskDetailPanel({
                       <Upload size={14} /> Kumpulkan Tugas
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* ── LINK TAB ── */}
+              {tab === "link" && (
+                <div className="p-5 flex flex-col gap-4">
+                  {linkDone && (
+                    <div className="bg-mhs-green/10 border border-mhs-green/25 rounded-xl px-4 py-3 flex items-center gap-2">
+                      <CheckCircle2 size={15} className="text-mhs-green shrink-0" />
+                      <span className="text-[12.5px] text-mhs-green font-medium">Link berhasil dilampirkan!</span>
+                    </div>
+                  )}
+                  <div className="bg-mhs-card border border-mhs-border rounded-xl p-4 flex flex-col gap-3">
+                    <div className="text-[12px] font-semibold text-mhs-text">Lampirkan Link Eksternal</div>
+                    <div className="text-[11px] text-mhs-muted">
+                      Google Drive, GitHub, Figma, OneDrive, atau URL lainnya.
+                    </div>
+                    <input
+                      type="url"
+                      value={linkUrl}
+                      onChange={e => setLinkUrl(e.target.value)}
+                      placeholder="https://drive.google.com/..."
+                      className="w-full bg-mhs-bg border border-mhs-border rounded-xl px-3 py-2.5 text-[12.5px] text-mhs-text placeholder:text-mhs-muted outline-none focus:border-mhs-amber transition-colors"
+                    />
+                    <textarea
+                      value={linkNote}
+                      onChange={e => setLinkNote(e.target.value)}
+                      placeholder="Deskripsi link (opsional)…"
+                      rows={2}
+                      className="w-full bg-mhs-bg border border-mhs-border rounded-xl px-3 py-2.5 text-[12.5px] text-mhs-text placeholder:text-mhs-muted outline-none focus:border-mhs-amber transition-colors resize-none"
+                    />
+                    <button
+                      onClick={handleSubmitLink}
+                      disabled={!linkUrl.trim()}
+                      className="w-full bg-mhs-teal hover:bg-mhs-teal/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl text-[13px] transition-all flex items-center justify-center gap-2"
+                    >
+                      <Paperclip size={14} /> Lampirkan Link
+                    </button>
+                  </div>
+
+                  {/* Existing link attachments */}
+                  {(allSubs as Array<{id: string; fileName: string; fileSize: string; note: string; submittedAt: string; url?: string; type?: string}>).filter(s => s.type === "link" || s.url).length > 0 && (
+                    <div>
+                      <div className="text-[12px] font-semibold text-mhs-text mb-2">Link Terlampir</div>
+                      <div className="flex flex-col gap-2">
+                        {(allSubs as Array<{id: string; fileName: string; fileSize: string; note: string; submittedAt: string; url?: string; type?: string}>).filter(s => s.type === "link" || s.url).map(s => (
+                          <a
+                            key={s.id}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-mhs-card border border-mhs-border rounded-xl px-4 py-3 flex items-center gap-3 hover:border-mhs-teal transition-colors"
+                          >
+                            <Paperclip size={15} className="text-mhs-teal shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[12px] text-mhs-teal truncate">{s.url ?? s.fileName}</div>
+                              {s.note && <div className="text-[11px] text-mhs-muted mt-0.5">{s.note}</div>}
+                              <div className="text-[10px] text-mhs-muted mt-0.5">{s.submittedAt}</div>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

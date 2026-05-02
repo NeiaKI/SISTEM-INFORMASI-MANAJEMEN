@@ -1,3 +1,5 @@
+import { logActivity } from "@/lib/activityLog";
+
 const STORE_KEY = "sim_task_store";
 
 export interface Submission {
@@ -6,7 +8,10 @@ export interface Submission {
   fileSize: string;
   note: string;
   submittedAt: string;
+  submittedAtMs?: number;
   submittedBy?: string;
+  url?: string;
+  type?: "file" | "link";
 }
 
 export interface Comment {
@@ -51,12 +56,25 @@ export function addSubmission(
 ): void {
   const s = getStore();
   if (!s[taskId]) s[taskId] = { taskTitle, taskCourse, submissions: [], comments: [] };
+  const now = Date.now();
   s[taskId].submissions.unshift({
     ...sub,
-    id: `sub-${Date.now()}`,
-    submittedAt: new Date().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+    id: `sub-${now}`,
+    submittedAt: new Date(now).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+    submittedAtMs: now,
   });
   save(s);
+  logActivity({
+    taskId,
+    taskTitle,
+    taskCourse,
+    kind: sub.url ? "link_added" : "submission_added",
+    actor: sub.submittedBy ?? "Mahasiswa",
+    role: "mahasiswa",
+    detail: sub.url
+      ? `Link dilampirkan: ${sub.url}`
+      : `File dikumpulkan: ${sub.fileName}`,
+  });
 }
 
 export function addComment(
@@ -73,6 +91,15 @@ export function addComment(
     time: new Date().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
   });
   save(s);
+  logActivity({
+    taskId,
+    taskTitle,
+    taskCourse,
+    kind: "comment_added",
+    actor: comment.author,
+    role: (comment.role as "mahasiswa" | "dosen") ?? "mahasiswa",
+    detail: `"${comment.text.slice(0, 80)}${comment.text.length > 80 ? "…" : ""}"`,
+  });
 }
 
 export function markCompleted(taskId: string): void {
@@ -109,6 +136,51 @@ export function seedDummyComments(): void {
     }
     if (!s[taskId].comments.find(c => c.id === comment.id)) {
       s[taskId].comments.push(comment);
+      changed = true;
+    }
+  }
+  if (changed) save(s);
+}
+
+const SEED_SUBMISSIONS_DATA: Array<{
+  taskId: string; taskTitle: string; taskCourse: string;
+  id: string; fileName: string; fileSize: string; note: string; submittedBy: string; offsetMs: number;
+}> = [
+  { taskId: "dsn-1", taskTitle: "Studi Kasus BPMN", taskCourse: "Analisis SI",
+    id: "seed-sub1", fileName: "BPMN_Andi.pdf", fileSize: "1.2 MB", note: "",
+    submittedBy: "Andi Ardiansyah", offsetMs: 10 * 60_000 },
+  { taskId: "dsn-2", taskTitle: "Sprint Board UI Responsif", taskCourse: "Interaksi Manusia & Komputer",
+    id: "seed-sub2", fileName: "SprintBoard_Siti.fig", fileSize: "3.4 MB", note: "Sudah dikumpulkan pak",
+    submittedBy: "Siti Kartika", offsetMs: 65 * 60_000 },
+  { taskId: "dsn-3", taskTitle: "Kuis Keamanan Informasi", taskCourse: "Keamanan Sistem",
+    id: "seed-sub3", fileName: "Kuis_Rafi.pdf", fileSize: "800 KB", note: "",
+    submittedBy: "Andra Rafi Irgi", offsetMs: 3 * 3600_000 },
+  { taskId: "dsn-4", taskTitle: "ERD & Normalisasi Database", taskCourse: "Basis Data",
+    id: "seed-sub4", fileName: "ERD_Wahyu.png", fileSize: "2.1 MB", note: "Sudah 3NF pak",
+    submittedBy: "Wahyu Nugroho", offsetMs: 5 * 3600_000 },
+  { taskId: "dsn-1", taskTitle: "Studi Kasus BPMN", taskCourse: "Analisis SI",
+    id: "seed-sub5", fileName: "BPMN_Maya.pdf", fileSize: "980 KB", note: "",
+    submittedBy: "Maya Sari", offsetMs: 26 * 3600_000 },
+];
+
+export function seedDummySubmissions(): void {
+  const s = getStore();
+  let changed = false;
+  for (const d of SEED_SUBMISSIONS_DATA) {
+    if (!s[d.taskId]) {
+      s[d.taskId] = { taskTitle: d.taskTitle, taskCourse: d.taskCourse, submissions: [], comments: [] };
+    }
+    if (!s[d.taskId].submissions.find(sub => sub.id === d.id)) {
+      const ts = Date.now() - d.offsetMs;
+      s[d.taskId].submissions.push({
+        id: d.id,
+        fileName: d.fileName,
+        fileSize: d.fileSize,
+        note: d.note,
+        submittedBy: d.submittedBy,
+        submittedAt: new Date(ts).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+        submittedAtMs: ts,
+      });
       changed = true;
     }
   }

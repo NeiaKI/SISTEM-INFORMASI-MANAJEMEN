@@ -52,7 +52,12 @@ export default function DosenRekapPage() {
     if (savedS) setDismissedSubmissions(JSON.parse(savedS));
     // Muat tugas baru yang dibuat dosen
     const newTasks: DosenTask[] = JSON.parse(localStorage.getItem("dosen_new_tasks") || "[]");
-    if (newTasks.length > 0) setAllTasks([...newTasks, ...data.tasks as DosenTask[]]);
+    const overrides: Record<string, { closed?: boolean; closedAt?: string }> =
+      JSON.parse(localStorage.getItem("dosen_task_overrides") || "{}");
+    const seedTasks = (data.tasks as DosenTask[]).map(t =>
+      overrides[t.id] ? { ...t, ...overrides[t.id] } : t
+    );
+    setAllTasks([...newTasks, ...seedTasks]);
     // Cek jika dinavigasi dari halaman Manajemen Tugas dengan task tertentu
     const preselected = localStorage.getItem("dosen_rekap_active_task");
     if (preselected) {

@@ -72,12 +72,24 @@ export default function DosenTugasPage() {
 
   useEffect(() => {
     const saved: Task[] = JSON.parse(localStorage.getItem("dosen_new_tasks") || "[]");
-    if (saved.length > 0) setAllTasks([...saved, ...seedData.tasks]);
+    const overrides: Record<string, { closed?: boolean; closedAt?: string }> =
+      JSON.parse(localStorage.getItem("dosen_task_overrides") || "{}");
+    const seedWithOverrides = (seedData.tasks as Task[]).map(t =>
+      overrides[t.id] ? { ...t, ...overrides[t.id] } : t
+    );
+    setAllTasks([...saved, ...seedWithOverrides]);
   }, []);
 
   function syncLocalStorage(tasks: Task[]) {
     const newOnes = tasks.filter(t => t.id.startsWith("new-"));
     localStorage.setItem("dosen_new_tasks", JSON.stringify(newOnes));
+    const overrides: Record<string, { closed?: boolean; closedAt?: string }> = {};
+    for (const t of tasks) {
+      if (t.closed !== undefined || t.closedAt !== undefined) {
+        overrides[t.id] = { closed: t.closed, closedAt: t.closedAt };
+      }
+    }
+    localStorage.setItem("dosen_task_overrides", JSON.stringify(overrides));
   }
 
   function handleCreate(e: React.FormEvent<HTMLFormElement>) {

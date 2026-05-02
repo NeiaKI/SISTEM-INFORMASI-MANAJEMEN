@@ -1,13 +1,79 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { getAllTaskData, seedDummyComments, seedDummySubmissions, type Submission } from "@/lib/taskStore";
+
+type RecentSub = Submission & { taskTitle: string; taskCourse: string };
+
+function relTime(ms?: number): string {
+  if (!ms) return "";
+  const diff = Date.now() - ms;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "baru saja";
+  if (mins < 60) return `${mins} mnt lalu`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} jam lalu`;
+  const days = Math.floor(hrs / 24);
+  return `${days} hari lalu`;
+}
+
+function initials(name: string): string {
+  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("");
+}
+
+const AVATAR_COLORS = [
+  "bg-forest/10 text-forest",
+  "bg-teal/10 text-teal",
+  "bg-gold/15 text-gold",
+  "bg-rose/10 text-rose",
+  "bg-[#7c3aed]/10 text-[#7c3aed]",
+];
+function avatarColor(name: string) {
+  const idx = [...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
+}
+
 export default function DosenDashboard() {
+  const [recentSubs, setRecentSubs] = useState<RecentSub[]>([]);
+
+  useEffect(() => {
+    seedDummyComments();
+    seedDummySubmissions();
+    const store = getAllTaskData();
+    const all: RecentSub[] = [];
+    for (const [, entry] of Object.entries(store)) {
+      for (const sub of entry.submissions) {
+        if (sub.submittedBy) {
+          all.push({ ...sub, taskTitle: entry.taskTitle, taskCourse: entry.taskCourse });
+        }
+      }
+    }
+    all.sort((a, b) => (b.submittedAtMs ?? 0) - (a.submittedAtMs ?? 0));
+    setRecentSubs(all.slice(0, 4));
+  }, []);
+
+  const newCount = recentSubs.filter(s => {
+    const diff = Date.now() - (s.submittedAtMs ?? 0);
+    return diff < 24 * 3600_000;
+  }).length;
+
   return (
     <div className="flex flex-col gap-5.5">
       {/* ALERT BANNER */}
       <div className="bg-gold/10 border-[1.5px] border-gold/25 rounded-xl px-4.5 py-3 text-[13px] text-ink-2 flex items-center gap-2.5">
         <span className="text-lg">📬</span>
-        <span className="flex-1">Terdapat <strong className="text-gold font-semibold">3 tugas</strong> yang baru dikumpulkan mahasiswa dan menunggu penilaian Anda.</span>
-        <button className="bg-paper text-ink-2 border-[1.5px] border-border hover:text-forest hover:border-forest px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all shrink-0">
+        <span className="flex-1">
+          Terdapat{" "}
+          <strong className="text-gold font-semibold">{newCount || recentSubs.length} tugas</strong>{" "}
+          yang baru dikumpulkan mahasiswa dan menunggu penilaian Anda.
+        </span>
+        <Link
+          href="/dosen/rekap"
+          className="bg-paper text-ink-2 border-[1.5px] border-border hover:text-forest hover:border-forest px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all shrink-0"
+        >
           Lihat Sekarang
-        </button>
+        </Link>
       </div>
 
       {/* STAT CARDS */}
@@ -19,7 +85,7 @@ export default function DosenDashboard() {
           <div className="text-[12px] text-muted mt-1">Total Tugas Aktif</div>
           <div className="text-[11.5px] mt-2.5 text-forest font-medium">↑ 4 tugas baru bulan ini</div>
         </div>
-        
+
         {/* Card 2 */}
         <div className="bg-paper border-[1.5px] border-border rounded-xl p-5 relative overflow-hidden hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(26,26,20,0.08)] transition-all">
           <div className="w-9.5 h-9.5 rounded-lg bg-gold/10 text-gold flex items-center justify-center text-lg mb-3.5">📥</div>
@@ -47,15 +113,15 @@ export default function DosenDashboard() {
 
       {/* TWO COLUMNS */}
       <div className="grid grid-cols-[1fr_320px] gap-5 mt-2">
-        
+
         {/* LEFT COLUMN */}
         <div className="space-y-5">
-          
+
           {/* TUGAS BERJALAN TABLE */}
           <div className="bg-paper border-[1.5px] border-border rounded-[14px] p-5.5 shadow-[0_1px_6px_rgba(26,26,20,0.08)]">
             <div className="flex items-center mb-4">
               <h3 className="text-[14px] font-semibold text-ink flex-1">📋 Daftar Tugas Berjalan</h3>
-              <a href="#" className="text-[12px] text-forest hover:underline cursor-pointer">Lihat semua tugas →</a>
+              <Link href="/dosen/tugas" className="text-[12px] text-forest hover:underline cursor-pointer">Lihat semua tugas →</Link>
             </div>
 
             <div className="overflow-x-auto">
@@ -166,7 +232,7 @@ export default function DosenDashboard() {
 
         {/* RIGHT COLUMN */}
         <div className="space-y-5">
-          
+
           {/* DEADLINE MENDATANG */}
           <div className="bg-paper border-[1.5px] border-border rounded-[14px] p-5.5 shadow-[0_1px_6px_rgba(26,26,20,0.08)]">
             <h3 className="text-[14px] font-semibold text-ink mb-4">⏰ Jadwal Terdekat</h3>
@@ -207,33 +273,47 @@ export default function DosenDashboard() {
             </div>
           </div>
 
-          {/* PERLU TINDAKAN (Tugas Baru Dikumpulkan) */}
+          {/* BARU DIKUMPULKAN */}
           <div className="bg-paper border-[1.5px] border-border rounded-[14px] p-5.5 shadow-[0_1px_6px_rgba(26,26,20,0.08)]">
-            <h3 className="text-[14px] font-semibold text-ink mb-4">🔔 Baru Dikumpulkan</h3>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 pb-2.5 border-b border-border">
-                <div className="w-8 h-8 rounded-lg bg-forest/10 text-forest font-bold flex items-center justify-center text-[10px]">AA</div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium text-ink truncate">Andi Ardiansyah</div>
-                  <div className="text-[11px] text-muted">Laporan Sorting</div>
-                </div>
-                <div className="text-[10px] text-muted bg-cream px-1.5 py-0.5 rounded">10mnt lalu</div>
-              </div>
-
-              <div className="flex items-center gap-3 pb-2.5 border-b border-border">
-                <div className="w-8 h-8 rounded-lg bg-teal/10 text-teal font-bold flex items-center justify-center text-[10px]">SK</div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium text-ink truncate">Siti Kartika</div>
-                  <div className="text-[11px] text-muted">Resume SO</div>
-                </div>
-                <div className="text-[10px] text-muted bg-cream px-1.5 py-0.5 rounded">1 jam lalu</div>
-              </div>
+            <div className="flex items-center mb-4">
+              <h3 className="text-[14px] font-semibold text-ink flex-1">🔔 Baru Dikumpulkan</h3>
+              {recentSubs.length > 0 && (
+                <span className="text-[10px] font-semibold bg-forest/10 text-forest px-2 py-0.5 rounded-full">
+                  {recentSubs.length}
+                </span>
+              )}
             </div>
-            
-            <button className="w-full mt-3 py-2 text-[12px] font-semibold text-forest border-[1.5px] border-forest/30 rounded-lg hover:bg-forest/5 transition-colors">
+
+            {recentSubs.length === 0 ? (
+              <p className="text-[12px] text-muted text-center py-4">Belum ada pengumpulan.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentSubs.map((sub, i) => (
+                  <div
+                    key={sub.id}
+                    className={`flex items-center gap-3 ${i < recentSubs.length - 1 ? "pb-2.5 border-b border-border" : ""}`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg font-bold flex items-center justify-center text-[10px] shrink-0 ${avatarColor(sub.submittedBy ?? "")}`}>
+                      {initials(sub.submittedBy ?? "?")}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium text-ink truncate">{sub.submittedBy}</div>
+                      <div className="text-[11px] text-muted truncate">{sub.taskTitle}</div>
+                    </div>
+                    <div className="text-[10px] text-muted bg-cream px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
+                      {relTime(sub.submittedAtMs)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Link
+              href="/dosen/rekap"
+              className="block w-full mt-3 py-2 text-[12px] font-semibold text-forest border-[1.5px] border-forest/30 rounded-lg hover:bg-forest/5 transition-colors text-center"
+            >
               Lihat Semua Pengumpulan
-            </button>
+            </Link>
           </div>
 
         </div>

@@ -18,22 +18,38 @@ No lint or test tooling is configured yet.
 
 ### Key directories
 
-- `app/` — Next.js App Router pages: `auth/login/`, `mahasiswa/` (student dashboard), `dosen/` (lecturer dashboard), root `page.tsx` (landing)
-- `components/ui/` — shadcn/ui primitives (Button, Badge, Card, Dialog, Select, Tabs, Checkbox, Input)
-- `data/sim-data.js` — All mock data and configuration constants (`AUTH_MODES`, `SECTION_OPTIONS`, `ACCESS_ROWS`, system settings)
-- `lib/utils.js` — `cn()` helper (clsx + tailwind-merge)
+- `app/` — Next.js App Router pages by role:
+  - `auth/login/` — login page, selects role and redirects
+  - `mahasiswa/` — student dashboard (tugas, kelompok, laporan, log, notifikasi, proyek, participant, profil)
+  - `dosen/` — lecturer dashboard (tugas, rekap, kelompok, mahasiswa, matakuliah, laporan, log, notifikasi, profil)
+  - `admin/` — admin dashboard (tugas, laporan, notifikasi, profil)
+  - `staff-tu/` — staff TU dashboard (tugas, laporan, notifikasi, profil)
+- `components/ui/` — shadcn/ui primitives (Button, Badge, Card, Dialog, Select, Tabs, Checkbox, Input, Skeleton, ConfirmDialog)
+- `components/` — shared components (empty-state, task-detail-panel, theme-provider, reload-button)
+- `data/sim-data.ts` — all mock data and configuration constants (`AUTH_MODES`, `SECTION_OPTIONS`, `ACCESS_ROWS`, system settings)
+- `lib/` — stores and utilities:
+  - `utils.ts` — `cn()` helper (clsx + tailwind-merge)
+  - `taskStore.ts` — task state management
+  - `kelompokStore.ts` — group state management
+  - `notifStore.ts` — notification state management
+  - `activityLog.ts` — activity log helpers
+  - `exportUtils.ts` — export/download utilities
+  - `students-data.ts` — student mock data
+  - `search-context.tsx` — global search context
 
 ### Role-based UI
 
-The app has two user roles with distinct layouts and color palettes:
-- **Mahasiswa** (students) — Amber/Teal accent theme
-- **Dosen** (lecturers) — Forest/Gold on cream theme
+The app has four user roles with distinct layouts and color palettes:
+- **Mahasiswa** (students) — Amber/Teal accent theme (`mhs-*` CSS vars)
+- **Dosen** (lecturers) — Forest/Gold on cream theme (`dsn-*` CSS vars)
+- **Admin** — institutional admin theme (`adm-*` CSS vars)
+- **Staff TU** — staff TU theme (`stu-*` CSS vars)
 
 Login at `/auth/login` selects the role and routes accordingly. All state is local (`useState`); no real authentication exists.
 
 ### Theming
 
-Tailwind v4 uses CSS-first config in `app/globals.css` (`@theme inline { ... }`), no `tailwind.config.js`. `components/theme-provider.jsx` wraps `next-themes` for light/dark mode. `components.json` configures shadcn/ui (baseColor: slate, cssVariables enabled).
+Tailwind v4 uses CSS-first config in `app/globals.css` (`@theme inline { ... }`), no `tailwind.config.js`. `components/theme-provider.tsx` wraps `next-themes` for light/dark mode. `components.json` configures shadcn/ui (baseColor: slate, cssVariables enabled).
 
 ### Path alias
 

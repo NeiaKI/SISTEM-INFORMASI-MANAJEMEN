@@ -1,4 +1,7 @@
+"use client";
+
 import { createSeedData } from "@/data/sim-data";
+import { useNotifStore } from "@/lib/notifStore";
 
 const data = createSeedData().mahasiswa;
 
@@ -41,22 +44,34 @@ const CHANNEL_ICON = {
 };
 
 export default function NotifikasiPage() {
+  const { readIds, markRead, togglePref, getPrefs } = useNotifStore("mahasiswa");
+  const prefs = getPrefs(data.preferences);
+  const unread = data.notifications.filter((_, i) => !readIds.includes(`mahasiswa-notif-${i}`)).length;
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <div className="text-[11px] text-mhs-muted uppercase tracking-[0.1em] mb-0.5">Modul</div>
-        <div className="font-serif text-[22px] text-mhs-text">Notifikasi & Pengingat</div>
+      <div className="flex items-end justify-between">
+        <div>
+          <div className="text-[11px] text-mhs-muted uppercase tracking-[0.1em] mb-0.5">Modul</div>
+          <div className="font-serif text-[22px] text-mhs-text">Notifikasi & Pengingat</div>
+        </div>
+        {unread > 0 && (
+          <span className="text-[12px] bg-mhs-rose/10 text-mhs-rose font-semibold px-3 py-1 rounded-full border border-mhs-rose/20">
+            {unread} belum dibaca
+          </span>
+        )}
       </div>
 
       {/* NOTIFICATION LIST */}
       <div className="bg-mhs-card border border-mhs-border rounded-[14px] max-w-2xl">
         {data.notifications.map((notif, i) => {
           const cfg = KIND_CONFIG[notif.kind as keyof typeof KIND_CONFIG] ?? KIND_CONFIG.info;
+          const isRead = readIds.includes(`mahasiswa-notif-${i}`);
           const isLast = i === data.notifications.length - 1;
           return (
             <div
               key={i}
-              className={`flex gap-3.5 p-4 items-start ${!isLast ? "border-b border-mhs-border" : ""}`}
+              className={`flex gap-3.5 p-4 items-start ${!isLast ? "border-b border-mhs-border" : ""} ${isRead ? "opacity-60" : ""} transition-opacity`}
             >
               <div className={`w-[38px] h-[38px] rounded-[10px] ${cfg.bg} ${cfg.color} flex items-center justify-center text-[18px] shrink-0`}>
                 {cfg.icon}
@@ -75,8 +90,17 @@ export default function NotifikasiPage() {
                   </span>
                   <span className="w-1 h-1 rounded-full bg-mhs-muted/40" />
                   <span className="text-[11px] text-mhs-muted">{notif.time}</span>
+                  {!isRead && (
+                    <button
+                      onClick={() => markRead(`mahasiswa-notif-${i}`)}
+                      className="text-[11px] text-mhs-amber hover:underline ml-auto"
+                    >
+                      Tandai dibaca
+                    </button>
+                  )}
                 </div>
               </div>
+              {!isRead && <div className="w-2 h-2 rounded-full bg-mhs-rose shrink-0 mt-2 animate-pulse" />}
             </div>
           );
         })}
@@ -85,15 +109,20 @@ export default function NotifikasiPage() {
       {/* PREFERENCES */}
       <div>
         <div className="text-[14px] font-semibold text-mhs-text mb-3">⚙️ Preferensi Notifikasi</div>
-        <div className="grid grid-cols-2 gap-3 max-w-2xl">
-          {data.preferences.map(pref => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+          {prefs.map(pref => (
             <div
               key={pref.key}
               className="bg-mhs-card border border-mhs-border rounded-[14px] p-4 flex items-start gap-3"
             >
-              <div className={`w-9 h-5 rounded-full relative flex items-center transition-colors shrink-0 mt-0.5 border ${pref.enabled ? "bg-mhs-teal border-mhs-teal" : "bg-mhs-border border-mhs-border"}`}>
+              <button
+                onClick={() => togglePref("mahasiswa", pref.key)}
+                className={`w-9 h-5 rounded-full relative flex items-center transition-colors shrink-0 mt-0.5 border ${
+                  pref.enabled ? "bg-mhs-teal border-mhs-teal" : "bg-mhs-border border-mhs-border"
+                }`}
+              >
                 <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm absolute transition-all ${pref.enabled ? "right-[3px]" : "left-[3px]"}`} />
-              </div>
+              </button>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-medium text-mhs-text">{pref.label}</div>
                 <div className="text-[11px] text-mhs-muted mt-0.5 leading-relaxed">{pref.detail}</div>

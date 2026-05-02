@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { User, LogOut, X, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SearchContext } from "@/lib/search-context";
 
 export default function DosenLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +15,8 @@ export default function DosenLayout({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
+  useEffect(() => { setSearchQ(""); }, [pathname]);
   const [modalSaved, setModalSaved] = useState(false);
   const [form, setForm] = useState({ title: "", course: "", type: "individu", deadline: "", description: "" });
 
@@ -92,6 +95,13 @@ export default function DosenLayout({ children }: { children: ReactNode }) {
             {pathname === "/dosen/mahasiswa" && <div className="absolute left-0 top-1/5 h-[60%] w-[3px] bg-forest rounded-r-sm" />}
             <span className="text-[16px] w-5 text-center">🎓</span> Data Mahasiswa
           </Link>
+          <Link href="/dosen/kelompok" className={cn(
+            "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] font-medium transition-all mb-0.5 relative",
+            pathname === "/dosen/kelompok" ? "bg-forest/10 text-forest font-semibold" : "text-muted hover:bg-cream hover:text-ink"
+          )}>
+            {pathname === "/dosen/kelompok" && <div className="absolute left-0 top-1/5 h-[60%] w-[3px] bg-forest rounded-r-sm" />}
+            <span className="text-[16px] w-5 text-center">👥</span> Kelompok
+          </Link>
 
           <div className="text-[10px] text-muted tracking-[0.1em] uppercase px-2.5 mt-3.5 mb-1.5">Akademik</div>
           <Link href="/dosen/matakuliah" className={cn(
@@ -115,6 +125,13 @@ export default function DosenLayout({ children }: { children: ReactNode }) {
             {pathname === "/dosen/notifikasi" && <div className="absolute left-0 top-1/5 h-[60%] w-[3px] bg-forest rounded-r-sm" />}
             <span className="text-[16px] w-5 text-center">🔔</span> Notifikasi
             <span className="ml-auto bg-rose text-white text-[10px] font-bold py-[1px] px-1.5 rounded-full">2</span>
+          </Link>
+          <Link href="/dosen/log" className={cn(
+            "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] font-medium transition-all mb-0.5 relative",
+            pathname === "/dosen/log" ? "bg-forest/10 text-forest font-semibold" : "text-muted hover:bg-cream hover:text-ink"
+          )}>
+            {pathname === "/dosen/log" && <div className="absolute left-0 top-1/5 h-[60%] w-[3px] bg-forest rounded-r-sm" />}
+            <span className="text-[16px] w-5 text-center">📋</span> Log Aktivitas
           </Link>
         </nav>
 
@@ -172,14 +189,24 @@ export default function DosenLayout({ children }: { children: ReactNode }) {
             {pathname === "/dosen/matakuliah" && <><span>Mata Kuliah</span> <span className="text-forest">yang Diampu</span></>}
             {pathname === "/dosen/laporan" && <><span>Laporan &amp;</span> <span className="text-forest">Ekspor</span></>}
             {pathname === "/dosen/notifikasi" && <><span>Notifikasi</span> <span className="text-forest">Dosen</span></>}
+            {pathname === "/dosen/log" && <><span>Log</span> <span className="text-forest">Aktivitas</span></>}
+            {pathname === "/dosen/kelompok" && <><span>Manajemen</span> <span className="text-forest">Kelompok</span></>}
             {pathname === "/dosen/profil" && <><span>Data</span> <span className="text-forest">Pribadi</span></>}
           </div>
           
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">🔍</span>
-            <input 
-              type="text" 
-              placeholder="Cari mahasiswa, tugas…" 
+            <input
+              type="text"
+              value={searchQ}
+              onChange={e => setSearchQ(e.target.value)}
+              placeholder={
+                pathname.includes("kelompok")  ? "Cari kelompok, anggota…" :
+                pathname.includes("tugas")     ? "Cari judul tugas…" :
+                pathname.includes("mahasiswa") ? "Cari nama, NIM…" :
+                pathname.includes("rekap")     ? "Cari nama mahasiswa…" :
+                "Cari mahasiswa, tugas…"
+              }
               className="bg-paper border-[1.5px] border-border text-ink pl-[34px] pr-3.5 py-1.5 rounded-lg text-[13px] w-[200px] outline-none focus:border-forest transition-colors"
             />
           </div>
@@ -195,6 +222,7 @@ export default function DosenLayout({ children }: { children: ReactNode }) {
 
         {/* PAGE CONTENT */}
         <div className="p-8 animate-fadeIn">
+          <SearchContext.Provider value={searchQ}>
           {modalSaved && (
             <div className="fixed top-5 right-5 z-[200] flex items-center gap-2.5 bg-paper border border-forest/30 text-forest px-4 py-3 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] text-[13.5px] font-medium animate-fadeIn">
               <CheckCircle size={16} />
@@ -202,6 +230,7 @@ export default function DosenLayout({ children }: { children: ReactNode }) {
             </div>
           )}
           {children}
+          </SearchContext.Provider>
         </div>
       </main>
 
