@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { Globe, Eye, EyeOff, ArrowLeft, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,10 +29,13 @@ export default function AdminLoginPage() {
       {/* Left Column */}
       <div className="relative hidden md:flex flex-col justify-end p-12 overflow-hidden bg-[#1e3a8a]">
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="/Unpam-Victor.jpeg"
             alt="Universitas Pamulang"
-            className="w-full h-full object-cover mix-blend-overlay opacity-50"
+            fill
+            className="object-cover mix-blend-overlay opacity-50"
+            sizes="(max-width: 768px) 0vw, 50vw"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a8a]/95 via-[#1e3a8a]/60 to-transparent" />
         </div>

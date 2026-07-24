@@ -9,4 +9,20 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-export default [...compat.extends("next/core-web-vitals")];
+export default [
+  {
+    ignores: [
+      ".claude/**",
+      ".next/**",
+      "node_modules/**",
+      "out/**",
+      "public/**"
+    ]
+  },
+  ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      "import/no-anonymous-default-export": "off",
+    }
+  }
+];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { MessageSquare, Paperclip, ChevronDown, ChevronUp, Check, X, Bell, Lock, Loader2 } from "lucide-react";
 import { Toast, type ToastType } from "@/components/ui/toast";
 import { useSearch } from "@/lib/search-context";
@@ -44,7 +44,7 @@ export default function DosenRekapPage() {
 
   // 1. Fetch all tasks for the dosen
   const { data: tasksData, isLoading: isLoadingTasks } = useSWR('/api/tugas', fetcher);
-  const allTasks = tasksData?.tasks || [];
+  const allTasks = useMemo(() => tasksData?.tasks || [], [tasksData?.tasks]);
 
   // Automatically select the first task if not selected
   useEffect(() => {

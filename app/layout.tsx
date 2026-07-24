@@ -1,7 +1,22 @@
+import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import ClientSessionProvider from "@/components/client-session-provider";
+
+const poppins = Poppins({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+
+const inter = Inter({
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -30,29 +45,12 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className={`${poppins.variable} ${inter.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link rel="dns-prefetch" href="https://api.fontshare.com" />
-        <link
-          rel="preload"
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@600&display=swap"
-          as="style"
-        />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@600&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

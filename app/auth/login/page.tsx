@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Globe, Eye, EyeOff, Mail, KeyRound, X, ArrowLeft, CheckCircle2, Loader2, Database, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
@@ -170,10 +171,13 @@ function LoginForm() {
       <div className="relative hidden md:flex flex-col justify-end p-12 overflow-hidden bg-[#2563eb]">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="/Unpam-Victor.jpeg" 
-            alt="Universitas Pamulang" 
-            className="w-full h-full object-cover mix-blend-overlay opacity-60"
+          <Image
+            src="/Unpam-Victor.jpeg"
+            alt="Universitas Pamulang"
+            fill
+            className="object-cover mix-blend-overlay opacity-60"
+            sizes="(max-width: 768px) 0vw, 50vw"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-blue-700/90 via-blue-600/50 to-transparent" />
         </div>
