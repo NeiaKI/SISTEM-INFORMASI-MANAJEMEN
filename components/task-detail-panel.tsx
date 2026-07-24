@@ -336,7 +336,7 @@ export function TaskDetailPanel({
                         <div className="min-w-0 flex-1">
                           <div className="text-[11.5px] font-medium text-mhs-text truncate">{s.fileName}</div>
                           <div className="text-[10px] text-mhs-muted mt-0.5">{s.submittedBy} · {s.submittedAt}</div>
-                          {s.note && <div className="text-[10px] text-mhs-muted italic mt-0.5">"{s.note}"</div>}
+                          {s.note && <div className="text-[10px] text-mhs-muted italic mt-0.5">&quot;{s.note}&quot;</div>}
                         </div>
                         <CheckCircle2 size={12} className="text-mhs-green shrink-0 mt-0.5" />
                       </div>

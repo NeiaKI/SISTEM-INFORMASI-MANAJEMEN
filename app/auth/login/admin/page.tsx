@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-5 text-center">
-              Kredensial tidak valid. Gunakan password '123456' untuk demo.
+              Kredensial tidak valid. Gunakan password &apos;123456&apos; untuk demo.
             </div>
           )}
 

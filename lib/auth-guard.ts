@@ -15,16 +15,13 @@ export async function requireSession(): Promise<SessionContext | NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return {
-    userId: (session.user as any).id,
-    role: (session.user as any).role,
+    userId: session.user.id,
+    role: session.user.role,
     email: session.user.email,
   };
 }
 
-export function requireRole(
-  ctx: SessionContext,
-  roles: UserRole[],
-): NextResponse | null {
+export function requireRole(ctx: SessionContext, roles: UserRole[]): NextResponse | null {
   return roles.includes(ctx.role)
     ? null
     : NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -280,6 +280,34 @@ model Notifikasi {
   @@map("notifikasi")
 }
 
+model TugasOperasional {
+  id        String   @id @default(uuid())
+  judul     String
+  kategori  String
+  status    String
+  prioritas String
+  progres   Int      @default(0)
+  deadline  DateTime
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([role, status])
+  @@index([role, deadline])
+  @@map("tugas_operasional")
+}
+
+model IntegrasiSistem {
+  id        String   @id @default(uuid())
+  nama      String   @unique
+  status    String
+  catatan   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("integrasi_sistem")
+}
+
 enum Role {
   MAHASISWA
   DOSEN

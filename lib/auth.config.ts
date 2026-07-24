@@ -108,9 +108,9 @@ export const authConfig = {
     },
     async jwt({ token, user, account, profile }) {
       if (user) {
-        token.role = (user as any).role;
+        token.role = user.role;
         token.id = user.id;
-        token.username = (user as any).username;
+        token.username = user.username;
       }
 
       if (account?.provider === "google" && profile?.email) {
@@ -151,10 +151,10 @@ export const authConfig = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        (session.user as any).id = token.id as string;
-        (session.user as any).role = token.role as string;
-        (session.user as any).username = token.username as string;
+      if (token.id && token.role && token.username) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as "MAHASISWA" | "DOSEN" | "ADMIN" | "STAFF_TU";
+        session.user.username = token.username as string;
         if (token.name) {
           session.user.name = token.name as string;
         }

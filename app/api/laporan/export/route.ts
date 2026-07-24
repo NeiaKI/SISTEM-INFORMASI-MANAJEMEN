@@ -14,9 +14,8 @@ const COLUMNS: CsvColumn[] = [
 ];
 
 /**
- * GET /api/laporan/export?format=csv
- * Ekspor daftar tugas ke CSV (default). Format xlsx/pdf tersedia bila
- * library terkait dipasang — lihat lib/exporters.ts (dynamic import).
+ * GET /api/laporan/export?format=csv|xlsx|pdf
+ * Ekspor daftar tugas ke CSV (default), XLSX, atau PDF.
  */
 export async function GET(req: Request) {
   const session = await requireSession();
@@ -49,7 +48,8 @@ export async function GET(req: Request) {
   try {
     const result = await exportData(format, rows, COLUMNS);
     const filename = `laporan-tugas.${result.extension}`;
-    return new NextResponse(result.content, {
+    const content = typeof result.content === "string" ? result.content : new Uint8Array(result.content);
+    return new NextResponse(content, {
       status: 200,
       headers: {
         "Content-Type": result.contentType,
@@ -57,9 +57,6 @@ export async function GET(req: Request) {
       },
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: (err as Error).message },
-      { status: 501 }
-    );
+    return NextResponse.json({ error: (err as Error).message }, { status: 501 });
   }
 }

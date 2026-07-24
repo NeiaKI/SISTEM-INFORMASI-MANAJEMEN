@@ -3,7 +3,10 @@ import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import ClientSessionProvider from "@/components/client-session-provider";
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata = {
+  metadataBase: new URL(appUrl),
   title: "AcadTrack — Manajemen Tugas & Proyek Kuliah",
   description:
     "Platform manajemen tugas dan proyek perkuliahan untuk mahasiswa, dosen, admin, dan staff TU Universitas Pamulang. Submit, review, rekap pengumpulan, semua dalam satu dashboard.",
@@ -14,7 +17,14 @@ export const metadata = {
     siteName: "AcadTrack",
     locale: "id_ID",
     type: "website",
-    images: [{ url: "/Unpam-Victor.jpeg", width: 1200, height: 630, alt: "AcadTrack — Manajemen Tugas & Proyek Kuliah" }],
+    images: [
+      {
+        url: "/Unpam-Victor.jpeg",
+        width: 1200,
+        height: 630,
+        alt: "AcadTrack — Manajemen Tugas & Proyek Kuliah",
+      },
+    ],
   },
 };
 
@@ -23,11 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="id" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link rel="dns-prefetch" href="https://api.fontshare.com" />
         <link
@@ -53,22 +59,28 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "AcadTrack",
-              "url": "https://acadtrack.unpam.ac.id",
-              "description": "Sistem manajemen pembelajaran digital terintegrasi untuk mahasiswa dan dosen Universitas Pamulang.",
-              "publisher": {
+              name: "AcadTrack",
+              url: appUrl,
+              description:
+                "Sistem manajemen pembelajaran digital terintegrasi untuk mahasiswa dan dosen Universitas Pamulang.",
+              publisher: {
                 "@type": "Organization",
-                "name": "Universitas Pamulang",
-                "url": "https://www.unpam.ac.id",
-                "logo": { "@type": "ImageObject", "url": "https://acadtrack.unpam.ac.id/Unpam-Victor.jpeg" }
-              }
-            })
+                name: "Universitas Pamulang",
+                url: "https://www.unpam.ac.id",
+                logo: { "@type": "ImageObject", url: `${appUrl}/Unpam-Victor.jpeg` },
+              },
+            }),
           }}
         />
       </head>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <ClientSessionProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
           </ThemeProvider>
         </ClientSessionProvider>
@@ -76,4 +88,3 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
-

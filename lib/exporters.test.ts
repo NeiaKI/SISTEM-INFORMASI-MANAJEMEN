@@ -33,8 +33,15 @@ describe("exportData", () => {
     expect(res.contentType).toContain("text/csv");
   });
 
-  it("xlsx/pdf melempar error (library belum terpasang)", async () => {
-    await expect(exportData("xlsx", [])).rejects.toThrow();
-    await expect(exportData("pdf", [])).rejects.toThrow();
+  it("xlsx mengembalikan content-type excel", async () => {
+    const res = await exportData("xlsx", [{ id: 1, title: "test" }]);
+    expect(res.extension).toBe("xlsx");
+    expect(res.contentType).toContain("spreadsheetml");
+  });
+
+  it("pdf mengembalikan content-type pdf", async () => {
+    const res = await exportData("pdf", [{ id: 1, title: "test" }]);
+    expect(res.extension).toBe("pdf");
+    expect(res.contentType).toContain("pdf");
   });
 });

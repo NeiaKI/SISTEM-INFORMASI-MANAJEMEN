@@ -9,7 +9,7 @@ async function main() {
     try {
       await deleteFn();
     } catch (e: any) {
-      if (e.code === 'P2021') {
+      if (e.code === "P2021") {
         console.log(`Skipping cleanup for ${tableName} (table not found).`);
       } else {
         throw e;
@@ -17,6 +17,8 @@ async function main() {
     }
   };
 
+  await deleteSilent(() => prisma.tugasOperasional.deleteMany({}), "tugasOperasional");
+  await deleteSilent(() => prisma.integrasiSistem.deleteMany({}), "integrasiSistem");
   await deleteSilent(() => prisma.comment.deleteMany({}), "comment");
   await deleteSilent(() => prisma.submission.deleteMany({}), "submission");
   await deleteSilent(() => prisma.logAktivitas.deleteMany({}), "logAktivitas");
@@ -81,7 +83,12 @@ async function main() {
     { nim: "231011450720", nama: "Dedi Kusuma", email: "dedikusuma@example.com", activeSem: 6 },
     { nim: "231011450234", nama: "Eko Setiawan", email: "ekosetiawan@example.com", activeSem: 6 },
     { nim: "231011450890", nama: "Fajar Nugroho", email: "fajarnugroho@example.com", activeSem: 6 },
-    { nim: "231011450444", nama: "Hendra Saputra", email: "hendrasaputra@example.com", activeSem: 6 },
+    {
+      nim: "231011450444",
+      nama: "Hendra Saputra",
+      email: "hendrasaputra@example.com",
+      activeSem: 6,
+    },
   ];
 
   const createdMahasiswas = [];
@@ -207,7 +214,8 @@ async function main() {
     data: {
       idMk: mkAnalisisSI.id,
       namaProyek: "Proyek Besar Analisis SI",
-      deskripsi: "Proyek kolaboratif untuk merancang, memetakan proses bisnis, dan membuat SRS Sistem E-Learning Kampus.",
+      deskripsi:
+        "Proyek kolaboratif untuk merancang, memetakan proses bisnis, dan membuat SRS Sistem E-Learning Kampus.",
       tanggalMulai: new Date("2026-04-20"),
       deadlineAkhir: new Date("2026-06-15"),
       progresProyek: 68,
@@ -255,7 +263,8 @@ async function main() {
     data: {
       idMk: mkAnalisisSI.id,
       judul: "Laporan Analisis Kebutuhan Sistem",
-      deskripsi: "Tulis laporan kebutuhan sistem mencakup pendahuluan, landasan teori, analisis, dan usecase.",
+      deskripsi:
+        "Tulis laporan kebutuhan sistem mencakup pendahuluan, landasan teori, analisis, dan usecase.",
       tanggalDiberikan: new Date("2026-04-25"),
       deadline: new Date("2026-05-20"),
       bobotNilai: 30,
@@ -329,6 +338,82 @@ async function main() {
       idDosen: dosenProfile!.id,
       text: "Draft sudah bagus, perhatikan primary key di tabel transaksi agar tidak terjadi redundansi.",
     },
+  });
+
+  console.log("Seeding operational tasks and integrations...");
+  await prisma.tugasOperasional.createMany({
+    data: [
+      {
+        judul: "Validasi Laporan Sinkronisasi SIAKAD",
+        kategori: "Sistem",
+        status: "menunggu review",
+        prioritas: "Tinggi",
+        progres: 80,
+        deadline: new Date("2026-05-10"),
+        role: "ADMIN",
+      },
+      {
+        judul: "Pembaruan SSL Certificate Server Utama",
+        kategori: "Infrastruktur",
+        status: "sedang dikerjakan",
+        prioritas: "Sedang",
+        progres: 40,
+        deadline: new Date("2026-05-15"),
+        role: "ADMIN",
+      },
+      {
+        judul: "Audit Log Percobaan Login Gagal",
+        kategori: "Keamanan",
+        status: "selesai",
+        prioritas: "Rendah",
+        progres: 100,
+        deadline: new Date("2026-05-12"),
+        role: "ADMIN",
+      },
+      {
+        judul: "Validasi KRS Mahasiswa Baru",
+        kategori: "Semua Kelas",
+        status: "menunggu review",
+        prioritas: "Tinggi",
+        progres: 80,
+        deadline: new Date("2026-05-10"),
+        role: "STAFF_TU",
+      },
+      {
+        judul: "Setup Akses LMS untuk Dosen Eksternal",
+        kategori: "Sistem Informasi",
+        status: "sedang dikerjakan",
+        prioritas: "Sedang",
+        progres: 40,
+        deadline: new Date("2026-05-15"),
+        role: "STAFF_TU",
+      },
+      {
+        judul: "Pemetaan Kelas Semester Genap",
+        kategori: "Akademik",
+        status: "belum mulai",
+        prioritas: "Rendah",
+        progres: 0,
+        deadline: new Date("2026-06-01"),
+        role: "STAFF_TU",
+      },
+    ],
+  });
+  await prisma.integrasiSistem.createMany({
+    data: [
+      { nama: "SIAKAD", status: "Stabil", catatan: "Koneksi database sinkron" },
+      { nama: "LMS Kampus", status: "Parsial", catatan: "Impor tugas manual aktif" },
+      {
+        nama: "Email Server",
+        status: "Perlu observasi",
+        catatan: "Ditemukan beberapa mail delivery delay",
+      },
+      {
+        nama: "SSO Kampus",
+        status: "Rencana aktivasi",
+        catatan: "Menunggu konfigurasi metadata SAML",
+      },
+    ],
   });
 
   console.log("Database seeded successfully!");

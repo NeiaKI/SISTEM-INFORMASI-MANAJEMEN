@@ -1,72 +1,71 @@
 import { requireSession, requireRole } from "@/lib/auth-guard";
-import { NextResponse } from "next/server";
+import {
+  getOperationalTasks,
+  getSystemIntegrations,
+  serializeOperationalTask,
+} from "@/lib/operational";
 import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await requireSession();
     if (session instanceof NextResponse) return session;
     const forbidden = requireRole(session, ["ADMIN"]);
     if (forbidden) return forbidden;
 
-    const totalUsers = await prisma.user.count();
-    
-    // Count user growth (joined in the last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentUsersCount = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: sevenDaysAgo
-        }
-      }
-    });
 
-    // Mock operations tasks
-    const tasks = [
-      { id: "adm-t-1", title: "Validasi Laporan Sinkronisasi SIAKAD", course: "Sistem", status: "menunggu review" },
-      { id: "adm-t-2", title: "Pembaruan SSL Certificate Server Utama", course: "Infrastruktur", status: "sedang dikerjakan" },
-      { id: "adm-t-3", title: "Audit Log Percobaan Login Gagal", course: "Keamanan", status: "selesai" }
-    ];
+    const [totalUsers, recentUsersCount, operationalTasks, integrations, notifications] =
+      await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+        getOperationalTasks("ADMIN"),
+        getSystemIntegrations(),
+        prisma.notifikasi.findMany({
+          where: { idUser: session.userId },
+          orderBy: { waktuKirim: "desc" },
+          take: 5,
+        }),
+      ]);
 
-    // Integrations
-    const integrations = [
-      { name: "SIAKAD", status: "Stabil", note: "Koneksi database sinkron" },
-      { name: "LMS Kampus", status: "Parsial", note: "Impor tugas manual aktif" },
-      { name: "Email Server", status: "Perlu observasi", note: "Ditemukan beberapa mail delivery delay" },
-      { name: "SSO Kampus", status: "Rencana aktivasi", note: "Menunggu konfigurasi metadata SAML" }
-    ];
-
-    // Operations modules
+    const tasks = operationalTasks.map(serializeOperationalTask);
     const operations = [
-      { title: "Manajemen user", detail: "Buat akun, nonaktifkan, reset password, dan jaga role tetap konsisten.", status: "Aktif" },
-      { title: "Semester aktif", detail: "Pusat kontrol tahun ajar, semester, bahasa, dan zona waktu default.", status: "Aktif" },
-      { title: "Monitoring integrasi", detail: "Pantau SIAKAD, LMS, email, dan SSO dari satu panel.", status: "Aktif" }
-    ];
-
-    // System notifications (Admin)
-    const notifications = await prisma.notifikasi.findMany({
-      where: {
-        idUser: session.userId
+      {
+        title: "Manajemen user",
+        detail: "Buat akun, nonaktifkan, reset password, dan jaga role tetap konsisten.",
+        status: "Aktif",
       },
-      orderBy: { waktuKirim: "desc" },
-      take: 5
-    });
+      {
+        title: "Semester aktif",
+        detail: "Pusat kontrol tahun ajar, semester, bahasa, dan zona waktu default.",
+        status: "Aktif",
+      },
+      {
+        title: "Monitoring integrasi",
+        detail: "Pantau SIAKAD, LMS, email, dan SSO dari satu panel.",
+        status: "Aktif",
+      },
+    ];
 
     return NextResponse.json({
       stats: {
         totalUsers,
         recentUsersCount,
-        activeIntegrationsCount: integrations.filter(i => i.status === "Stabil").length,
+        activeIntegrationsCount: integrations.filter((item) => item.status === "Stabil").length,
         totalIntegrationsCount: integrations.length,
-        alertCount: notifications.length
+        alertCount: notifications.length,
       },
       tasks,
-      integrations,
+      integrations: integrations.map(({ nama, status, catatan }) => ({
+        name: nama,
+        status,
+        note: catatan,
+      })),
       operations,
-      notifications
+      notifications,
     });
-
   } catch (error) {
     console.error("Admin Dashboard API Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

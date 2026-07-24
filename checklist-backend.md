@@ -71,15 +71,13 @@ Dokumen ini merangkum seluruh status pengerjaan fitur backend berdasarkan `prd-s
 ## 📤 Ekspor Data & 🔐 SSO Kampus (Fase 4 Lanjutan)
 
 - [x] **Endpoint Ekspor CSV** — `app/api/laporan/export` (auth: ADMIN/STAFF_TU) mengembalikan daftar tugas sebagai CSV via `lib/exporters.ts` (`toCsv` native, tanpa dependency).
-- [x] **Dynamic Import Export (extension point)** — `lib/exporters.ts` `exportData()` menyiapkan `await import("exceljs")` / `await import("pdfkit")` untuk xlsx/pdf; library belum terpasang (butuh konfirmasi install). Pola dynamic import siap pakai agar bundle tidak membengkak. Unit test `lib/exporters.test.ts`.
+- [x] **Dynamic Import Export** — `lib/exporters.ts` memuat `exceljs` / `pdfkit` hanya ketika format XLSX/PDF diminta, menghasilkan file nyata, dan dilengkapi unit test `lib/exporters.test.ts`.
 - [x] **SSO Kampus — Kerangka** — `lib/sso.ts` (`isSsoConfigured()`, `getSsoConfig()`) env-gated & graceful; env `SSO_*` di `.env.example`. Provider SAML (`next-auth/providers/boxyhq-saml`) **belum di-wire ke `auth.config.ts`** karena butuh Jackson service / `@boxyhq/saml` (belum terpasang) — snippet aktivasi didokumentasikan di `lib/sso.ts`. LDAP butuh package tambahan.
   - ⏳ **Aktivasi SSO** = butuh: (1) IdP kampus (metadata/cert), (2) install `@boxyhq/saml` atau jalankan Jackson, (3) tempel snippet provider ke `auth.config.ts`.
 
 ---
 
-## 4. Fase 4: Laporan, Ekspor, dan Import Data
-**Tujuan:** Kebutuhan operasional Kampus, pelaporan, dan pengelolaan data massal.
-
+## 4. Pelaporan & Export (Admin / Staff TU)
 - [x] **Fitur Import Data (Admin / Staff TU)**
   - [x] Pembuatan Template CSV untuk Mahasiswa, Dosen, dan Staff TU (`public/templates/`).
   - [x] Pembuatan `POST /api/admin/import-users` (menggunakan `csv-parse` untuk membaca dan menyimpan ke DB).
@@ -88,17 +86,19 @@ Dokumen ini merangkum seluruh status pengerjaan fitur backend berdasarkan `prd-s
   - [x] `GET /api/staff-tu/laporan` — Endpoint metrik KPI layanan Staff TU.
   - [x] `GET /api/admin/laporan` — Laporan untuk metrik sistem.
   - [x] Ekspor Data Nyata (Excel/CSV/PDF) yang terhubung ke DB (Terintegrasi di Laporan Dosen & Staff TU).
+  - [x] Refactor halaman `Admin/Staff TU` agar menggunakan SWR backend, menghapus dependensi pada `mock data` (lokal).
 - [x] **File Storage (Lampiran Tugas)**
   - [x] Konfigurasi penyimpanan lokal di folder `public/uploads/` untuk upload lampiran/submission.
   - [x] Pembuatan route handler `/api/upload` untuk upload file standard.
-   - [x] Integrasi ke Supabase Storage (jika disyaratkan produksi di masa depan).
+  - [x] Integrasi ke Supabase Storage (jika disyaratkan produksi di masa depan).
 
 ---
 
 ## Ringkasan Progres Saat Ini
-1. **Sedang Dikerjakan:** Integrasi Backend API Kelompok & Persiapan Serah Terima (Handoff).
-2. **Prioritas Berikutnya:** Menghubungkan UI Frontend Manajemen Kelompok (`app/mahasiswa/kelompok/page.tsx` & `app/dosen/kelompok/page.tsx`) agar menggunakan `useSWR` dari rute API `/api/kelompok` yang baru dibuat.
-3. **Pencapaian Terakhir:**
+1. **Selesai:** Cut-over Admin/Staff TU dari mock/localStorage ke API database, dashboard dan laporan berbasis Prisma, hardening konfigurasi, typing Auth.js, Zod validation, broadcast notifikasi berbasis enrollment, serta ekspor CSV/XLSX/PDF.
+2. **Validasi:** Prisma schema valid, Prisma Client berhasil di-generate, 25 unit/API test lulus, type-check lulus, dan production build berhasil.
+3. **Prioritas Berikutnya:** Terapkan migration `0002_operational_reporting` pada database target dan lakukan smoke test dengan data produksi.
+4. **Pencapaian Sebelumnya:**
    - ✅ Google OAuth Provider ditambahkan ke `lib/auth.ts` (signIn/jwt/session callbacks lengkap).
    - ✅ Tombol "Masuk dengan Google" & "SSO Terpadu" di halaman login dihubungkan ke `signIn("google")`.
    - ✅ API CRUD untuk Manajemen Kelompok selesai (`app/api/kelompok/route.ts` & `[id]/route.ts`).

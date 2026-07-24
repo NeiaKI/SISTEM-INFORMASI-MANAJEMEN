@@ -8,6 +8,10 @@ interface CreateNotifParams {
   jenis: JenisNotifikasi;
 }
 
+interface BroadcastResult {
+  count: number;
+}
+
 /** Create a single notification for one user */
 export async function createNotifikasi(params: CreateNotifParams) {
   try {
@@ -25,6 +29,23 @@ export async function createNotifikasi(params: CreateNotifParams) {
   }
 }
 
+export async function notifyAllMahasiswa(
+  judul: string,
+  pesan: string,
+  jenis: JenisNotifikasi = "INFO"
+): Promise<BroadcastResult> {
+  const mahasiswa = await prisma.mahasiswa.findMany({
+    select: { userId: true },
+  });
+
+  return createManyNotifications(
+    mahasiswa.map((mhs) => mhs.userId),
+    judul,
+    pesan,
+    jenis
+  );
+}
+
 /**
  * Notify all mahasiswa enrolled in a course.
  * Looks up each mahasiswa's userId to create notifications
@@ -35,24 +56,32 @@ export async function notifyEnrolledStudents(
   judul: string,
   pesan: string,
   jenis: JenisNotifikasi = "INFO"
-) {
-  try {
-    const enrollments = await prisma.enrollment.findMany({
-      where: { idMk },
-      include: { mahasiswa: true },
-    });
+): Promise<BroadcastResult> {
+  const enrollments = await prisma.enrollment.findMany({
+    where: { idMk },
+    include: { mahasiswa: true },
+  });
 
-    if (enrollments.length === 0) return;
+  return createManyNotifications(
+    enrollments.map((enrollment) => enrollment.mahasiswa.userId),
+    judul,
+    pesan,
+    jenis
+  );
+}
 
-    const data = enrollments.map((en) => ({
-      idUser: en.mahasiswa.userId,
-      judul,
-      pesan,
-      jenis,
-    }));
+async function createManyNotifications(
+  userIds: string[],
+  judul: string,
+  pesan: string,
+  jenis: JenisNotifikasi
+): Promise<BroadcastResult> {
+  const uniqueUserIds = [...new Set(userIds)];
+  if (uniqueUserIds.length === 0) return { count: 0 };
 
-    await prisma.notifikasi.createMany({ data });
-  } catch (error) {
-    console.error("Gagal mengirim notifikasi ke mahasiswa:", error);
-  }
+  const result = await prisma.notifikasi.createMany({
+    data: uniqueUserIds.map((idUser) => ({ idUser, judul, pesan, jenis })),
+  });
+
+  return { count: result.count };
 }

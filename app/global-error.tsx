@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function GlobalError({
@@ -40,12 +41,12 @@ export default function GlobalError({
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 12 }}>
-            <a
+            <Link
               href="/"
               style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", background: "#1d4ed8", color: "#fff", fontSize: 14, fontWeight: 500, borderRadius: 8, textDecoration: "none" }}
             >
               Kembali ke Beranda
-            </a>
+            </Link>
             <button
               onClick={reset}
               style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", border: "1px solid #d1d5db", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 500, borderRadius: 8, cursor: "pointer" }}
